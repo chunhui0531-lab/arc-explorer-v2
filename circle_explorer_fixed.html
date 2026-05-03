@@ -1779,19 +1779,28 @@
         <div class="stage-side">
           <!-- Task Card -->
           <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:12px;padding:14px 16px;margin-bottom:8px;border-left:4px solid #3b82f6;">
-            <div style="font-weight:700;color:#1e40af;margin-bottom:6px;font-size:15px;">🎯 探索任務</div>
-            <p style="font-size:14px;color:#1e3a8a;margin:0 0 6px;line-height:1.5;">同樣的角度，三個不同大小的圓……弧長竟然都不一樣？</p>
-            <p style="font-size:13px;color:#3730a3;margin:0;line-height:1.5;">量完三個圓之後，試著回答：<br>弧長和哪些因素有關？它們是什麼關係？</p>
+            <div style="font-weight:700;color:#1e40af;margin-bottom:6px;font-size:15px;">🎯 兩段式探索</div>
+            <p style="font-size:14px;color:#1e3a8a;margin:0 0 4px;line-height:1.6;"><strong>第一段</strong>：量每個弧的「弧度數」</p>
+            <p style="font-size:14px;color:#1e3a8a;margin:0;line-height:1.6;"><strong>第二段</strong>：再量每個弧對應的「圓心角」</p>
           </div>
 
-          <!-- How to measure -->
-          <div style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-radius:12px;padding:14px 16px;margin-bottom:8px;border-left:4px solid #0ea5e9;">
-            <div style="font-weight:700;color:#0369a1;margin-bottom:8px;font-size:15px;">📐 怎麼量？</div>
+          <!-- Phase 1 instruction（預設顯示）-->
+          <div id="howto1" style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-radius:12px;padding:14px 16px;margin-bottom:8px;border-left:4px solid #0ea5e9;">
+            <div style="font-weight:700;color:#0369a1;margin-bottom:8px;font-size:15px;">📐 第一段：量弧度數</div>
             <ol style="font-size:14px;color:#0c4a6e;margin:0;padding-left:18px;line-height:2;">
               <li>點選下方 <strong>小圓 / 中圓 / 大圓</strong> 切換</li>
-              <li>用滑鼠<strong>拖曳量角器</strong>，讓它的兩條邊對齊弧的兩端點</li>
-              <li>讀出角度，填入右側「<strong>測量記錄</strong>」的輸入框</li>
-              <li>三個圓都填好後，按「<strong>✓ 進入下一階段</strong>」</li>
+              <li>拖曳量角器，讓兩條臂<strong>對齊弧的兩端點</strong></li>
+              <li>讀出度數，填入表格「弧度數」欄</li>
+            </ol>
+          </div>
+
+          <!-- Phase 2 instruction（Phase 1 完成後才顯示）-->
+          <div id="howto2" style="display:none;background:linear-gradient(135deg,#fff7ed,#ffedd5);border-radius:12px;padding:14px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+            <div style="font-weight:700;color:#c2410c;margin-bottom:8px;font-size:15px;">📐 第二段：量圓心角</div>
+            <ol style="font-size:14px;color:#7c2d12;margin:0;padding-left:18px;line-height:2;">
+              <li>把量角器<strong>中心點移到圓心 O</strong>（閃爍紅圈處）</li>
+              <li>兩條臂分別<strong>指向弧的兩個端點</strong></li>
+              <li>讀出度數，填入表格「圓心角」欄</li>
             </ol>
           </div>
 
@@ -1803,108 +1812,107 @@
                 <div class="bar">
                   <div class="fill" id="prog" style="width:0%"></div>
                 </div>
-                <div class="label"><span id="progt">0 / 3 完成</span><span id="progp">0%</span></div>
+                <div class="label"><span id="progt">0 / 6 完成</span><span id="progp">0%</span></div>
               </div>
             </div>
           </details>
 
-          <!-- Records (Default Closed) -->
-          <details class="panel">
+          <!-- Records (Default Open) -->
+          <details class="panel" open>
             <summary>📏 測量記錄</summary>
             <div class="panel-content">
-              <table style="font-size:20px">
+              <table style="width:100%;font-size:13px;border-collapse:collapse;">
                 <thead>
-                  <tr>
-                    <th>圓</th>
-                    <th>角度</th>
-                    <th>狀態</th>
+                  <tr style="background:#f1f5f9;">
+                    <th style="padding:7px 5px;text-align:center;">圓</th>
+                    <th style="padding:7px 5px;text-align:center;">半徑</th>
+                    <th style="padding:7px 5px;text-align:center;color:#0ea5e9;">弧度數<br><span style="font-weight:400;font-size:11px;">（Phase 1）</span></th>
+                    <th style="padding:7px 5px;text-align:center;color:#f97316;">圓心角<br><span style="font-weight:400;font-size:11px;">（Phase 2）</span></th>
                   </tr>
                 </thead>
                 <tbody id="tb1">
-                  <tr data-r="60">
-                    <td><span class="dot"
-                        style="background:#17a2b8;display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px"></span>小
+                  <tr data-r="60" style="border-top:1px solid #e2e8f0;">
+                    <td style="padding:7px 5px;text-align:center;">
+                      <span style="background:#17a2b8;display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:middle;"></span>小
                     </td>
-                    <td><input type="number" class="manual-input" data-r="60" placeholder="?"
-                        style="width:70px;padding:4px;font-size:20px"></td>
-                    <td class="sc">未測</td>
+                    <td style="padding:7px 5px;text-align:center;color:#64748b;">60</td>
+                    <td style="padding:7px 4px;text-align:center;">
+                      <input type="number" class="manual-input arc-input" data-r="60" placeholder="?" style="width:58px;padding:3px;font-size:16px;text-align:center;border:1px solid #0ea5e9;border-radius:4px;">
+                      <span class="sc" style="font-size:10px;display:block;color:#94a3b8;margin-top:1px;"></span>
+                    </td>
+                    <td style="padding:7px 4px;text-align:center;">
+                      <input type="number" class="ca-input" data-r="60" placeholder="?" disabled style="width:58px;padding:3px;font-size:16px;text-align:center;border:1px solid #e2e8f0;border-radius:4px;background:#f8fafc;color:#94a3b8;">
+                      <span class="ca-sc" style="font-size:10px;display:block;color:#94a3b8;margin-top:1px;"></span>
+                    </td>
                   </tr>
-                  <tr data-r="90">
-                    <td><span class="dot"
-                        style="background:#ffc107;display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px"></span>中
+                  <tr data-r="90" style="border-top:1px solid #e2e8f0;">
+                    <td style="padding:7px 5px;text-align:center;">
+                      <span style="background:#ffc107;display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:middle;"></span>中
                     </td>
-                    <td><input type="number" class="manual-input" data-r="90" placeholder="?"
-                        style="width:70px;padding:4px;font-size:20px"></td>
-                    <td class="sc">未測</td>
+                    <td style="padding:7px 5px;text-align:center;color:#64748b;">90</td>
+                    <td style="padding:7px 4px;text-align:center;">
+                      <input type="number" class="manual-input arc-input" data-r="90" placeholder="?" style="width:58px;padding:3px;font-size:16px;text-align:center;border:1px solid #0ea5e9;border-radius:4px;">
+                      <span class="sc" style="font-size:10px;display:block;color:#94a3b8;margin-top:1px;"></span>
+                    </td>
+                    <td style="padding:7px 4px;text-align:center;">
+                      <input type="number" class="ca-input" data-r="90" placeholder="?" disabled style="width:58px;padding:3px;font-size:16px;text-align:center;border:1px solid #e2e8f0;border-radius:4px;background:#f8fafc;color:#94a3b8;">
+                      <span class="ca-sc" style="font-size:10px;display:block;color:#94a3b8;margin-top:1px;"></span>
+                    </td>
                   </tr>
-                  <tr data-r="120">
-                    <td><span class="dot"
-                        style="background:#e83e8c;display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px"></span>大
+                  <tr data-r="120" style="border-top:1px solid #e2e8f0;">
+                    <td style="padding:7px 5px;text-align:center;">
+                      <span style="background:#e83e8c;display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:middle;"></span>大
                     </td>
-                    <td><input type="number" class="manual-input" data-r="120" placeholder="?"
-                        style="width:70px;padding:4px;font-size:20px"></td>
-                    <td class="sc">未測</td>
+                    <td style="padding:7px 5px;text-align:center;color:#64748b;">120</td>
+                    <td style="padding:7px 4px;text-align:center;">
+                      <input type="number" class="manual-input arc-input" data-r="120" placeholder="?" style="width:58px;padding:3px;font-size:16px;text-align:center;border:1px solid #0ea5e9;border-radius:4px;">
+                      <span class="sc" style="font-size:10px;display:block;color:#94a3b8;margin-top:1px;"></span>
+                    </td>
+                    <td style="padding:7px 4px;text-align:center;">
+                      <input type="number" class="ca-input" data-r="120" placeholder="?" disabled style="width:58px;padding:3px;font-size:16px;text-align:center;border:1px solid #e2e8f0;border-radius:4px;background:#f8fafc;color:#94a3b8;">
+                      <span class="ca-sc" style="font-size:10px;display:block;color:#94a3b8;margin-top:1px;"></span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </details>
 
-          <!-- Conclusion panel（量完三圓後出現）-->
+          <!-- Conclusion panel（Phase 2 三格填完後出現）-->
           <div id="conclusionPanel1" style="display:none;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:12px;padding:14px 16px;border-left:4px solid #22c55e;">
-            <div style="font-weight:700;color:#15803d;margin-bottom:8px;font-size:15px;">🎉 三個圓都量完了！</div>
-            <p style="font-size:14px;color:#166534;margin:0 0 8px;line-height:1.5;">你量到的三個角度：</p>
-            <div id="conclusionMeasList" style="font-size:15px;font-weight:600;color:#15803d;margin-bottom:10px;line-height:1.8;"></div>
-            <p style="font-size:14px;color:#166534;margin:0 0 8px;line-height:1.5;">你注意到了嗎？三個圓的角度<strong>都一樣</strong>嗎？</p>
-            <p style="font-size:13px;color:#4ade80;margin:0;line-height:1.5;">👉 開啟下方「弧長 ÷ 半徑 找規律」看更深的規律！</p>
-          </div>
-
-          <!-- Scaffold Table (Default Closed) -->
-          <details class="panel" id="scaffoldPanel1">
-            <summary>📐 弧長 ÷ 半徑 找規律</summary>
-            <div class="panel-content">
-              <p style="font-size:14px;color:#64748b;margin-bottom:8px;line-height:1.5;">量完三個圓後，看看 <strong>弧長 ÷ 半徑</strong> 是否有規律。</p>
-              <table style="width:100%;font-size:15px;border-collapse:collapse;" id="scaffoldTable">
-                <thead>
-                  <tr style="background:#f1f5f9;font-size:13px;">
-                    <th style="padding:6px 4px;text-align:center;">圓</th>
-                    <th style="padding:6px 4px;text-align:center;">半徑 r</th>
-                    <th style="padding:6px 4px;text-align:center;">角度 x°</th>
-                    <th style="padding:6px 4px;text-align:center;">弧長 L</th>
-                    <th style="padding:6px 4px;text-align:center;">L ÷ r</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-top:1px solid #e2e8f0;">
-                    <td style="padding:6px 4px;text-align:center;"><span style="color:#17a2b8;">●</span> 小</td>
-                    <td style="padding:6px 4px;text-align:center;">60</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_ang_60">—</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_arc_60">—</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_ratio_60">—</td>
-                  </tr>
-                  <tr style="border-top:1px solid #e2e8f0;">
-                    <td style="padding:6px 4px;text-align:center;"><span style="color:#ffc107;">●</span> 中</td>
-                    <td style="padding:6px 4px;text-align:center;">90</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_ang_90">—</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_arc_90">—</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_ratio_90">—</td>
-                  </tr>
-                  <tr style="border-top:1px solid #e2e8f0;">
-                    <td style="padding:6px 4px;text-align:center;"><span style="color:#e83e8c;">●</span> 大</td>
-                    <td style="padding:6px 4px;text-align:center;">120</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_ang_120">—</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_arc_120">—</td>
-                    <td style="padding:6px 4px;text-align:center;" id="scaf_ratio_120">—</td>
-                  </tr>
-                </tbody>
-              </table>
-              <div style="margin-top:8px;font-size:13px;color:#94a3b8;text-align:center;" id="scaffoldHint">量完三個圓後自動填入 ↑</div>
-              <div id="scaffoldConclusion" style="display:none;margin-top:10px;padding:10px 12px;background:#f0fdf4;border-radius:8px;border-left:4px solid #10b981;font-size:14px;color:#065f46;">
-                📊 你發現了嗎？三個圓的 <strong>L ÷ r</strong> 幾乎相同！<br>
-                這說明：弧長和半徑成正比，比值只由角度決定。
+            <div style="font-weight:700;color:#15803d;margin-bottom:10px;font-size:15px;">🎉 兩段都量完了！來比比看！</div>
+            <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:12px;background:white;border-radius:8px;overflow:hidden;">
+              <thead>
+                <tr style="background:#dcfce7;">
+                  <th style="padding:7px 6px;text-align:center;font-size:12px;">圓</th>
+                  <th style="padding:7px 6px;text-align:center;color:#0ea5e9;font-size:12px;">弧度數</th>
+                  <th style="padding:7px 6px;text-align:center;color:#f97316;font-size:12px;">圓心角</th>
+                  <th style="padding:7px 6px;text-align:center;font-size:12px;">關係</th>
+                </tr>
+              </thead>
+              <tbody id="conclusionTableBody"></tbody>
+            </table>
+            <!-- 提問區 -->
+            <div id="conclusionQuestion" style="background:#fff;border-radius:8px;padding:12px 14px;border:2px dashed #22c55e;margin-bottom:10px;">
+              <p style="font-size:13px;color:#166534;margin:0 0 10px;line-height:1.6;">💬 <strong>你量到的弧度數和圓心角，數字有什麼關係？</strong></p>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <label style="font-size:13px;color:#334155;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                  <input type="radio" name="concl1" value="equal" style="width:16px;height:16px;"> 弧度數 ＝ 圓心角（相等）
+                </label>
+                <label style="font-size:13px;color:#334155;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                  <input type="radio" name="concl1" value="arc_bigger" style="width:16px;height:16px;"> 弧度數比較大
+                </label>
+                <label style="font-size:13px;color:#334155;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                  <input type="radio" name="concl1" value="ca_bigger" style="width:16px;height:16px;"> 圓心角比較大
+                </label>
               </div>
+              <div id="conclusionFeedback" style="display:none;margin-top:10px;font-size:13px;line-height:1.6;"></div>
             </div>
-          </details>
+            <!-- 最終結論（選對後才出現）-->
+            <div id="finalConclusion" style="display:none;background:#15803d;border-radius:8px;padding:12px 14px;text-align:center;">
+              <p style="font-size:14px;color:white;margin:0;font-weight:700;line-height:1.7;">🎯 重要結論：不論圓的大小，<br><span style="font-size:17px;letter-spacing:1px;">圓心角的度數 ＝ 弧的度數</span></p>
+            </div>
+          </div>
 
           <!-- Hints (Default Closed) -->
           <details class="panel">
@@ -2577,6 +2585,9 @@
       const TAU = Math.PI * 2, DEG = Math.PI / 180;
       let stage = 0, ans = [null, null, null];
       let selR_val = 60, meas = { 60: null, 90: null, 120: null }, measArcs = [];
+      let measCA = { 60: null, 90: null, 120: null }; // Phase 2：圓心角量測值
+      let phase1Done = false; // Phase 1 三格全填完後為 true
+      let pulseAnimId = null; // Phase 2 圓心閃爍動畫 id
       let arcs = [], selA_val = 0, drag = { dragging: false, arcIndex: -1 };
       const rOpt = [{ val: 60, color: '#17a2b8', lbl: '小' }, { val: 90, color: '#ffc107', lbl: '中' }, { val: 120, color: '#e83e8c', lbl: '大' }];
       let prot = { x: 0, y: 0, rot: 0, scale: 1, arm1: 0, arm2: Math.PI / 3, draggingRot: false, draggingArm1: false, draggingArm2: false, draggingMove: false, draggingScale: false };
@@ -3021,7 +3032,6 @@
 
         tSlider.addEventListener('input', (e) => {
           const val = parseInt(e.target.value);
-          // tVal.textContent = val + '°'; // Hide angle value per user request
 
           // Update arcs
           measArcs.forEach(arc => {
@@ -3029,29 +3039,68 @@
             arc.thetaB = val * DEG;
           });
 
-          // Reset measurements
-          meas = { 60: null, 90: null, 120: null };
+          // Reset both phases
+          meas   = { 60: null, 90: null, 120: null };
+          measCA = { 60: null, 90: null, 120: null };
+          phase1Done = false;
+          stopPulse();
+
           document.querySelectorAll('#tb1 tr').forEach(tr => {
             tr.classList.remove('done');
-            const inp = tr.querySelector('input');
-            if (inp) inp.value = '';
-            tr.querySelector('.sc').textContent = '未測量';
+            tr.querySelectorAll('input').forEach(inp => inp.value = '');
+            tr.querySelectorAll('.sc, .ca-sc').forEach(sp => sp.textContent = '');
           });
+          // 鎖回 Phase 2 輸入框
+          document.querySelectorAll('.ca-input').forEach(inp => {
+            inp.disabled = true;
+            inp.style.border = '1px solid #e2e8f0';
+            inp.style.background = '#f8fafc';
+            inp.style.color = '#94a3b8';
+          });
+          // 重置操作說明
+          document.getElementById('howto1').style.display = 'block';
+          document.getElementById('howto2').style.display = 'none';
+          // 隱藏結論面板
+          const cp1 = document.getElementById('conclusionPanel1');
+          if (cp1) cp1.style.display = 'none';
+
           updateProg();
           document.getElementById('btn1').disabled = true;
-
           draw1();
         });
 
-        // Manual input validation logic
-        document.querySelectorAll('.manual-input').forEach(input => {
+        // Phase 1：弧度數輸入事件
+        document.querySelectorAll('.arc-input').forEach(input => {
           input.addEventListener('change', (e) => {
             const r = parseInt(e.target.dataset.r);
             const val = parseFloat(e.target.value);
             if (isNaN(val)) return;
-
             meas[r] = val;
             updateLog1();
+            checkDone1();
+          });
+        });
+
+        // Phase 2：圓心角輸入事件
+        document.querySelectorAll('.ca-input').forEach(input => {
+          input.addEventListener('change', (e) => {
+            const r = parseInt(e.target.dataset.r);
+            const val = parseFloat(e.target.value);
+            if (isNaN(val)) return;
+            measCA[r] = val;
+            // 顯示誤差回饋
+            const arc = measArcs.find(a => a.r === r), actualDeg = arc ? arc.arcDeg : 60;
+            const err = Math.abs(val - actualDeg);
+            let status = '';
+            if (err <= 1) status = '⭐ 完美';
+            else if (err <= 3) status = '✓ 很好';
+            else if (err <= 6) status = '○ 不錯';
+            else if (err <= 10) status = '△ 可再試';
+            else status = '✗ 再試試';
+            const row = document.querySelector(`#tb1 tr[data-r="${r}"]`);
+            const casc = row ? row.querySelector('.ca-sc') : null;
+            if (casc) casc.textContent = `${status}(誤差${Math.round(err)}°)`;
+            updateProg();
             checkDone1();
           });
         });
@@ -3162,6 +3211,21 @@
         ctx.font = '700 20px system-ui';
         ctx.fillText('O', cx + 12, cy - 10);
         ctx.restore();
+
+        // Phase 2：圓心閃爍脈衝環
+        if (phase1Done) {
+          const pulse = (Math.sin(Date.now() / 250) + 1) / 2;
+          const pr = 18 + pulse * 12;
+          ctx.save();
+          ctx.strokeStyle = `rgba(239,68,68,${0.35 + pulse * 0.65})`;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(cx, cy, pr, 0, TAU);
+          ctx.stroke();
+          ctx.fillStyle = `rgba(239,68,68,${0.08 + pulse * 0.1})`;
+          ctx.fill();
+          ctx.restore();
+        }
 
         const btn = document.getElementById('toggleProtBtn');
         const shouldShow = !btn || btn.textContent.includes('隱藏');
@@ -3319,7 +3383,8 @@
 
       function updateLog1() {
         rOpt.forEach(o => {
-          const row = document.querySelector(`#tb1 tr[data-r="${o.val}"]`), val = meas[o.val];
+          const row = document.querySelector(`#tb1 tr[data-r="${o.val}"]`);
+          const val = meas[o.val];
           if (val !== null) {
             row.classList.add('done');
             const arc = measArcs.find(a => a.r === o.val), actualDeg = arc ? arc.arcDeg : 60;
@@ -3330,80 +3395,125 @@
             else if (err <= 6) status = '○ 不錯';
             else if (err <= 10) status = '△ 可再試';
             else status = '✗ 再試試';
-            row.querySelector('input').value = val; // Ensure value is set
-            row.querySelector('.sc').textContent = `${status} (誤差${Math.round(err)}°)`;
+            const inp = row.querySelector('.arc-input');
+            if (inp) inp.value = val;
+            const sc = row.querySelector('.sc');
+            if (sc) sc.textContent = `${status}(誤差${Math.round(err)}°)`;
           }
         });
         updateProg();
       }
 
       function updateProg() {
-        const cnt = Object.values(meas).filter(v => v !== null).length, pct = (cnt / 3) * 100;
+        const arcCnt = Object.values(meas).filter(v => v !== null).length;
+        const caCnt  = Object.values(measCA).filter(v => v !== null).length;
+        const cnt = arcCnt + caCnt, total = 6;
+        const pct = (cnt / total) * 100;
         document.getElementById('prog').style.width = pct + '%';
-        document.getElementById('progt').textContent = `${cnt} / 3 完成`;
+        document.getElementById('progt').textContent = `${cnt} / ${total} 完成`;
         document.getElementById('progp').textContent = Math.round(pct) + '%';
       }
 
       function checkDone1() {
-        const cnt = Object.values(meas).filter(v => v !== null).length;
+        updateScaffoldTable(); // no-op，保留以防其他地方呼叫
+        const arcCnt = Object.values(meas).filter(v => v !== null).length;
 
-        // 每次有新測量就更新鷹架表
-        updateScaffoldTable();
-
-        if (cnt === 3) {
-          document.getElementById('btn1').disabled = false;
-          // 存入 localStorage 供 Stage 2 drawEvA 讀取
+        // Phase 1 完成：解鎖 Phase 2
+        if (arcCnt === 3 && !phase1Done) {
+          phase1Done = true;
+          // 儲存弧測量值
           localStorage.setItem('circleExplorerMeas', JSON.stringify(meas));
-          // 儲存 Stage 1 測量數據供 Stage 2 ratio-scaffold 使用
           const arcData = [
-            { r: 60,  arcDeg: meas[60]  || 0, arcLen: parseFloat((2 * Math.PI * 60  * ((meas[60]  || 0) / 360)).toFixed(1)) },
-            { r: 90,  arcDeg: meas[90]  || 0, arcLen: parseFloat((2 * Math.PI * 90  * ((meas[90]  || 0) / 360)).toFixed(1)) },
-            { r: 120, arcDeg: meas[120] || 0, arcLen: parseFloat((2 * Math.PI * 120 * ((meas[120] || 0) / 360)).toFixed(1)) },
+            { r: 60,  arcDeg: meas[60]  || 0, arcLen: parseFloat((2*Math.PI*60 *((meas[60] ||0)/360)).toFixed(1)) },
+            { r: 90,  arcDeg: meas[90]  || 0, arcLen: parseFloat((2*Math.PI*90 *((meas[90] ||0)/360)).toFixed(1)) },
+            { r: 120, arcDeg: meas[120] || 0, arcLen: parseFloat((2*Math.PI*120*((meas[120]||0)/360)).toFixed(1)) },
           ];
           localStorage.setItem('circleExplorerMeasArcs', JSON.stringify(arcData));
-          toast('🎉 太棒了！你完成了所有測量！');
-          // 顯示結論面板
+          // 解鎖 Phase 2 輸入框
+          document.querySelectorAll('.ca-input').forEach(inp => {
+            inp.disabled = false;
+            inp.style.border = '1px solid #f97316';
+            inp.style.background = '#fff';
+            inp.style.color = '#1e293b';
+          });
+          // 切換操作說明卡
+          document.getElementById('howto1').style.display = 'none';
+          document.getElementById('howto2').style.display = 'block';
+          // 啟動圓心脈衝動畫
+          startPulse();
+          toast('✅ 第一段完成！現在把量角器移到圓心 O，量圓心角！');
+        }
+
+        // Phase 2 完成：顯示結論
+        const caCnt = Object.values(measCA).filter(v => v !== null).length;
+        if (arcCnt === 3 && caCnt === 3) {
+          stopPulse();
+          document.getElementById('btn1').disabled = false;
           showConclusionPanel1();
         }
       }
 
+      function startPulse() {
+        if (pulseAnimId) return;
+        function loop() { draw1(); pulseAnimId = requestAnimationFrame(loop); }
+        pulseAnimId = requestAnimationFrame(loop);
+      }
+
+      function stopPulse() {
+        if (pulseAnimId) { cancelAnimationFrame(pulseAnimId); pulseAnimId = null; }
+        draw1();
+      }
+
       function updateScaffoldTable() {
-        const DEG_TO_RAD = Math.PI / 180;
-        [60, 90, 120].forEach(r => {
-          const ang = meas[r];
-          const angEl = document.getElementById('scaf_ang_' + r);
-          const arcEl = document.getElementById('scaf_arc_' + r);
-          const ratioEl = document.getElementById('scaf_ratio_' + r);
-          if (ang !== null && ang !== undefined) {
-            const arcLen = 2 * Math.PI * r * (ang / 360);
-            const ratio = arcLen / r;
-            if (angEl) angEl.textContent = ang.toFixed(1) + '°';
-            if (arcEl) arcEl.textContent = arcLen.toFixed(1);
-            if (ratioEl) { ratioEl.textContent = ratio.toFixed(3); ratioEl.style.color = '#10b981'; ratioEl.style.fontWeight = '700'; }
-          }
-        });
-        // 若三個都填完 → 顯示結論
-        const allDone = [60, 90, 120].every(r => meas[r] !== null && meas[r] !== undefined);
-        const scafConcl = document.getElementById('scaffoldConclusion');
-        const scafHint = document.getElementById('scaffoldHint');
-        if (allDone && scafConcl) {
-          scafConcl.style.display = 'block';
-          if (scafHint) scafHint.style.display = 'none';
-        }
+        // scaffold table 已移至 Stage 2，Stage 1 不再使用
       }
 
       function showConclusionPanel1() {
         const panel = document.getElementById('conclusionPanel1');
-        const list = document.getElementById('conclusionMeasList');
-        if (!panel || !list) return;
-        const labels = { 60: '小圓 (r=60)', 90: '中圓 (r=90)', 120: '大圓 (r=120)' };
-        list.innerHTML = [60, 90, 120].map(r =>
-          `${labels[r]}：<strong>${meas[r] !== null ? meas[r].toFixed(1) + '°' : '—'}</strong>`
-        ).join('<br>');
+        const tbody = document.getElementById('conclusionTableBody');
+        if (!panel || !tbody) return;
+        const rows = [
+          { label: '小', color: '#17a2b8', r: 60 },
+          { label: '中', color: '#ffc107', r: 90 },
+          { label: '大', color: '#e83e8c', r: 120 }
+        ];
+        tbody.innerHTML = rows.map(row => {
+          const arc = meas[row.r] !== null ? meas[row.r].toFixed(1) + '°' : '—';
+          const ca  = measCA[row.r] !== null ? measCA[row.r].toFixed(1) + '°' : '—';
+          const diff = (meas[row.r] !== null && measCA[row.r] !== null)
+            ? Math.abs(meas[row.r] - measCA[row.r]) : 99;
+          const rel = diff <= 6 ? '<span style="color:#15803d;font-weight:700;">≈ 相等</span>'
+                    : (meas[row.r] > measCA[row.r]
+                      ? '<span style="color:#dc2626;">弧 &gt; 心</span>'
+                      : '<span style="color:#dc2626;">心 &gt; 弧</span>');
+          return `<tr style="border-top:1px solid #dcfce7;">
+            <td style="padding:6px;text-align:center;">
+              <span style="background:${row.color};display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:middle;"></span>${row.label}
+            </td>
+            <td style="padding:6px;text-align:center;font-weight:700;color:#0ea5e9;">${arc}</td>
+            <td style="padding:6px;text-align:center;font-weight:700;color:#f97316;">${ca}</td>
+            <td style="padding:6px;text-align:center;font-size:12px;">${rel}</td>
+          </tr>`;
+        }).join('');
         panel.style.display = 'block';
-        // 展開鷹架表
-        const scaffoldPanel = document.getElementById('scaffoldPanel1');
-        if (scaffoldPanel) scaffoldPanel.open = true;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // 綁定選擇題
+        document.querySelectorAll('input[name="concl1"]').forEach(radio => {
+          radio.addEventListener('change', (e) => {
+            const fb = document.getElementById('conclusionFeedback');
+            const fc = document.getElementById('finalConclusion');
+            fb.style.display = 'block';
+            if (e.target.value === 'equal') {
+              fb.style.color = '#15803d';
+              fb.innerHTML = '✅ 答對了！你從實驗中發現了一個重要的數學事實！';
+              setTimeout(() => { fc.style.display = 'block'; fc.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 600);
+            } else {
+              fb.style.color = '#dc2626';
+              fb.innerHTML = '🔍 再看看表格中的數字——弧度數和圓心角相差多少？（量角器誤差在 5° 以內都算相等喔）';
+            }
+          });
+        });
       }
 
       function toast(msg) {
