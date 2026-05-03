@@ -1529,9 +1529,75 @@
         width: 220px;
         height: 220px;
       }
-
-      .c-overlay canvas {}
     }
+
+    /* Calculator Widget Styles */
+    .calc-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 260px;
+      background: #fff;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      touch-action: none;
+    }
+    .calc-widget.show { display: flex; animation: slideUp 0.3s; }
+    .calc-header {
+      background: #f8f9fa;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      cursor: grab;
+      user-select: none;
+    }
+    .calc-header:active { cursor: grabbing; }
+    .calc-header button {
+      background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); padding: 0; line-height: 1; min-width: auto; min-height: auto; box-shadow: none;
+    }
+    .calc-header button:hover { color: var(--bad); }
+    .calc-display {
+      background: #1e293b;
+      color: #10b981;
+      font-family: monospace;
+      font-size: 28px;
+      padding: 16px 12px;
+      text-align: right;
+      border: none;
+      outline: none;
+      width: 100%;
+    }
+    .calc-keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--line);
+    }
+    .calc-keys button {
+      background: #fff;
+      border: none;
+      border-radius: 0;
+      font-size: 20px;
+      padding: 14px 0;
+      box-shadow: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: system-ui;
+    }
+    .calc-keys button:hover { background: #f1f5f9; }
+    .calc-keys button.operator { background: #f8fafc; color: var(--blue); }
+    .calc-keys button.eval { background: var(--blue); color: #fff; }
+    .calc-keys button.eval:hover { background: #2563eb; }
+    .calc-keys button.clear { color: var(--bad); }
   </style>
   <style>
     /* DS-Core Injection */
@@ -2345,7 +2411,10 @@
               <div class="qText">當圓心角相同時，以下哪些敘述正確？</div>
               <!-- ratio-scaffold 比值表格 -->
               <div class="ratio-scaffold" style="background:#fefce8; border:1px solid #fde047; border-radius:8px; padding:14px; margin-bottom:16px;">
-                <p style="font-weight:bold; margin:0 0 10px 0; color:#854d0e;">📊 先填填看：算出每個圓的「弧長 ÷ 半徑」</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                  <p style="font-weight:bold; margin:0; color:#854d0e;">📊 先填填看：算出每個圓的「弧長 ÷ 半徑」</p>
+                  <button class="gh-btn" style="height:32px; font-size:14px; border-color:#fde047; color:#854d0e; background:#fff;" onclick="toggleCalc()">🧮 呼叫計算機</button>
+                </div>
                 <table style="width:100%; border-collapse:collapse; font-size:15px;">
                   <thead>
                     <tr style="background:#fef08a;">
@@ -2578,6 +2647,39 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- Calculator Widget -->
+  <div id="calcWidget" class="calc-widget">
+    <div class="calc-header" id="calcHeader">
+      <span>🧮 計算機</span>
+      <button onclick="toggleCalc()">×</button>
+    </div>
+    <input type="text" id="calcDisplay" class="calc-display" readonly value="0">
+    <div class="calc-keys">
+      <button class="clear" onclick="calcClear()">C</button>
+      <button onclick="calcBack()">←</button>
+      <button onclick="calcType('/')" class="operator">÷</button>
+      <button onclick="calcType('*')" class="operator">×</button>
+
+      <button onclick="calcType('7')">7</button>
+      <button onclick="calcType('8')">8</button>
+      <button onclick="calcType('9')">9</button>
+      <button onclick="calcType('-')" class="operator">−</button>
+
+      <button onclick="calcType('4')">4</button>
+      <button onclick="calcType('5')">5</button>
+      <button onclick="calcType('6')">6</button>
+      <button onclick="calcType('+')" class="operator">+</button>
+
+      <button onclick="calcType('1')">1</button>
+      <button onclick="calcType('2')">2</button>
+      <button onclick="calcType('3')">3</button>
+      <button onclick="calcEval()" class="eval" style="grid-row: span 2;">=</button>
+
+      <button onclick="calcType('0')" style="grid-column: span 2;">0</button>
+      <button onclick="calcType('.')">.</button>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -2822,9 +2924,13 @@
       function goS(s, pushState = true) {
         // Update URL state without reloading
         if (pushState) {
-          const url = new URL(window.location);
-          url.searchParams.set('stage', s);
-          window.history.pushState({ stage: s }, '', url);
+          try {
+            const url = new URL(window.location);
+            url.searchParams.set('stage', s);
+            window.history.pushState({ stage: s }, '', url);
+          } catch (e) {
+            console.warn('History pushState blocked (likely in iframe/blob environment):', e);
+          }
         }
 
         document.querySelectorAll('.stage').forEach(el => el.classList.remove('active'));
@@ -3105,9 +3211,6 @@
           });
         });
 
-        // Record button (Removed/Hidden) but keeping listener placeholder if needed or just remove it.
-        // document.getElementById('record1Btn').addEventListener('click', () => { ... });
-
         // Next stage button
         document.getElementById('btn1').addEventListener('click', () => {
           if (window.saveStageProgress) window.saveStageProgress(1);
@@ -3370,14 +3473,6 @@
         ctx.arc(0, 0, arcR * .4, prot.arm1, prot.arm1 + ang);
         ctx.stroke();
 
-        // const angDeg = Math.round(ang / DEG);
-        // ctx.fillStyle = '#ff6b35';
-        // ctx.font = `700 ${16 * sc}px system-ui`;
-        // ctx.textAlign = 'center';
-        // const midAng = prot.arm1 + ang / 2, labelR = arcR * .55;
-        // const lx = labelR * Math.cos(midAng), ly = labelR * Math.sin(midAng);
-        // ctx.fillText(angDeg + '°', lx, ly + 6 * sc);
-
         ctx.restore();
       }
 
@@ -3415,7 +3510,6 @@
       }
 
       function checkDone1() {
-        updateScaffoldTable(); // no-op，保留以防其他地方呼叫
         const arcCnt = Object.values(meas).filter(v => v !== null).length;
 
         // Phase 1 完成：解鎖 Phase 2
@@ -3462,10 +3556,6 @@
       function stopPulse() {
         if (pulseAnimId) { cancelAnimationFrame(pulseAnimId); pulseAnimId = null; }
         draw1();
-      }
-
-      function updateScaffoldTable() {
-        // scaffold table 已移至 Stage 2，Stage 1 不再使用
       }
 
       function showConclusionPanel1() {
@@ -3526,7 +3616,7 @@
       // Stage 1.5
       function initS15() {
         const canvas = document.getElementById('c15'), ctx = canvas.getContext('2d');
-        const rad = 100, arcAng = 60 * DEG;
+        const arcAng = 60 * DEG;
 
         arcs = [
           { centerAngle: 30 * DEG, color: '#17a2b8', label: '弧 1', angle: arcAng },
@@ -3544,25 +3634,15 @@
         fit();
         window.addEventListener('resize', () => { fit(); draw15() });
 
-        function getEv(e) {
-          const rect = canvas.getBoundingClientRect();
-          const cx = e.touches ? e.touches[0].clientX : e.clientX;
-          const cy = e.touches ? e.touches[0].clientY : e.clientY;
-          return { x: cx - rect.left, y: cy - rect.top };
-        }
-
         function handleStart(e) {
           e.preventDefault();
-          // Pointer Events support
           const rect = canvas.getBoundingClientRect();
-          // e.clientX is safer for pointer events and consistent with rect
           const px = e.clientX - rect.left;
           const py = e.clientY - rect.top;
 
           const cx = rect.width / 2, cy = rect.height / 2;
-          // Match the radius logic from draw15 exactly
           const rad = Math.min(rect.width, rect.height) * .28;
-          const tolerance = 40; // 40px hit tolerance around the ring
+          const tolerance = 40; 
 
           for (let i = arcs.length - 1; i >= 0; i--) {
             const arc = arcs[i], midAng = arc.centerAngle;
@@ -3570,9 +3650,7 @@
             const dx = px - cx, dy = py - cy, dist = Math.sqrt(dx * dx + dy * dy);
             const ang = Math.atan2(dy, dx);
 
-            // Hit detection with correct dynamic radius
             if (Math.abs(dist - rad) < tolerance) {
-              // Angle check logic...
               let touchAng = ang;
               if (touchAng < 0) touchAng += TAU;
               let aStart = (midAng - arc.angle / 2) % TAU;
@@ -3580,9 +3658,8 @@
               let aEnd = (midAng + arc.angle / 2) % TAU;
               if (aEnd < 0) aEnd += TAU;
 
-              // Robust angle inclusion check
               let inside;
-              if (Math.abs(aEnd - aStart) < 0.001) inside = false; // Empty
+              if (Math.abs(aEnd - aStart) < 0.001) inside = false; 
               else if (aStart < aEnd) inside = touchAng >= aStart && touchAng <= aEnd;
               else inside = touchAng >= aStart || touchAng <= aEnd;
 
@@ -3590,7 +3667,7 @@
                 drag.dragging = true;
                 drag.arcIndex = i;
                 selA(i);
-                canvas.setPointerCapture(e.pointerId); // Crucial for touch
+                canvas.setPointerCapture(e.pointerId);
                 return;
               }
             }
@@ -3621,15 +3698,13 @@
           e.preventDefault();
           drag.dragging = false;
           drag.arcIndex = -1;
-          // Implicit release of pointer capture
         }
 
         canvas.addEventListener('pointerdown', handleStart);
         canvas.addEventListener('pointermove', handleMove);
         canvas.addEventListener('pointerup', handleEnd);
         canvas.addEventListener('pointercancel', handleEnd);
-        // Remove old listeners to avoid conflicts (though we are replacing the block)
-        canvas.style.touchAction = "none"; // CSS for canvas to prevent scrolling
+        canvas.style.touchAction = "none";
 
         // Arc buttons
         document.querySelectorAll('.abtn').forEach(btn => {
@@ -3657,13 +3732,11 @@
 
         // Submit button
         document.getElementById('submit15Btn').addEventListener('click', () => {
-          // Clear previous hints
           document.querySelectorAll('.q-hint').forEach(h => {
             h.textContent = '';
             h.classList.remove('show');
           });
 
-          // Validation Check: Are all completed?
           const q1Filled = document.getElementById('obs1a').checked || document.getElementById('obs1b').checked;
           const q2Filled = document.getElementById('obs2a').checked || document.getElementById('obs2b').checked;
           const q3Filled = document.getElementById('obs3Input') && document.getElementById('obs3Input').value.trim().length > 0;
@@ -3676,7 +3749,6 @@
 
           let allCorrect = true;
 
-          // Q1 Logic: Correct = obs1b (不會改變)
           if (document.getElementById('obs1a').checked) {
             const h = document.getElementById('hint1');
             h.textContent = '可以試著將三個旋轉疊疊看喔!';
@@ -3684,7 +3756,6 @@
             allCorrect = false;
           }
 
-          // Q2 Logic: Correct = obs2b (不會改變)
           if (document.getElementById('obs2a').checked) {
             const h = document.getElementById('hint2');
             h.textContent = '可嘗試將弧重疊比對';
@@ -3692,7 +3763,6 @@
             allCorrect = false;
           }
 
-          // Q3 Logic: Correct = "圓心角"
           const val3 = document.getElementById('obs3Input').value.trim();
           if (val3 !== '圓心角') {
             const h = document.getElementById('hint3');
@@ -3701,7 +3771,6 @@
             allCorrect = false;
           }
 
-          // Q4 Logic: Correct = obs4a (會重疊)
           if (document.getElementById('obs4b').checked) {
             const h = document.getElementById('hint4');
             h.textContent = '可嘗試將弧再移動重疊，進行觀察!';
@@ -3738,7 +3807,6 @@
         const guideToggle15 = document.getElementById('guideToggle15');
         const guideSteps15 = document.getElementById('guideSteps15');
         const arrow15 = guideToggle15.querySelector('.toggle');
-        // 預設收合
         guideToggle15.addEventListener('click', () => {
           guideSteps15.classList.toggle('show');
           arrow15.textContent = guideSteps15.classList.contains('show') ? '▼' : '►';
@@ -3848,29 +3916,45 @@
         draw15();
       }
 
-      // <!-- CHANGED: Stage 2 Logic Start -->
       function showS2() {
-        // 填入 ratio-scaffold 的弧長欄位（讀取 Stage 1 測量值）
-        const savedArcs = JSON.parse(localStorage.getItem('circleExplorerMeasArcs') || '[]');
-        if (savedArcs.length === 3) {
-          ['ratio-l1','ratio-l2','ratio-l3'].forEach((id, i) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = savedArcs[i].arcLen;
-          });
-        }
-        // Redraw content
+        // 獲取學生的測量角度，若無則預設為 60 度
+        let studentMeas = { 60: null, 90: null, 120: null };
+        try {
+          const stored = localStorage.getItem('circleExplorerMeas');
+          if (stored) studentMeas = JSON.parse(stored);
+        } catch(e) {}
+        
+        const ang = (studentMeas[60] || studentMeas[90] || studentMeas[120] || 60); 
+
+        // 嘗試讀取存檔的弧長
+        let savedArcs = [];
+        try {
+          savedArcs = JSON.parse(localStorage.getItem('circleExplorerMeasArcs') || '[]');
+        } catch(e) {}
+
+        // 填入 ratio-scaffold 的弧長欄位
+        const radii = [60, 90, 120];
+        ['ratio-l1','ratio-l2','ratio-l3'].forEach((id, i) => {
+          const el = document.getElementById(id);
+          if (el) {
+            // 如果有存檔就使用存檔，否則系統自動計算預設的弧長 (2 * π * r * (角度/360))
+            if (savedArcs.length === 3 && savedArcs[i] && savedArcs[i].arcLen > 0) {
+              el.textContent = savedArcs[i].arcLen;
+            } else {
+              el.textContent = (2 * Math.PI * radii[i] * (ang / 360)).toFixed(1);
+            }
+          }
+        });
+
         setTimeout(() => {
           fitCanvas('evCA', drawEvA);
           fitCanvas('evCB', drawEvB);
-          // fitCanvas('evCC', drawEvC); // Handled by updateStage2C
-          updateStage2C(); // Call new Stage 2 C update function
+          updateStage2C(); 
           initStage2Interactions();
         }, 100);
 
-        // Reset state
         document.querySelectorAll('.ev-feedback').forEach(el => el.classList.remove('show', 'warn', 'ok'));
         document.querySelectorAll('input[type=checkbox]').forEach(el => el.checked = false);
-        // Clear old specific feedback
         document.querySelectorAll('.fb-icon').forEach(el => el.remove());
       }
 
@@ -3880,7 +3964,6 @@
         const rect = c.parentElement.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
 
-        // Use container dimensions or defaults
         const w = rect.width || 200;
         const h = rect.height || 200;
 
@@ -3895,9 +3978,8 @@
         drawFn(ctx, w, h);
       }
 
-      // <!-- CHANGED: Stage 2 Evidence Card A -->
+      // --- 這就是剛剛我們修改過、解決圖形裁切問題的 drawEvA ---
       function drawEvA(ctx, w, h) {
-        // 嘗試讀取學生測量數據
         let studentMeas = { 60: null, 90: null, 120: null };
         try {
           const stored = localStorage.getItem('circleExplorerMeas');
@@ -3905,46 +3987,53 @@
         } catch(e) {}
 
         const cx = w / 2;
-        const cy = h * 0.88;
-        const maxR = h * 0.75;
+        const cy = h * 0.75; // 將圓心上移，讓下方留出空間
+        
+        // 加入縮放保護：確保最大的 r=120 也不會超出畫布邊界
+        const maxSafeR = Math.min(w * 0.4, h * 0.55); 
+        const rScaleFactor = maxSafeR / 120; 
 
-        // 用學生量到的角度（若無則用預設 90°）
-        const ang = (studentMeas[60] || studentMeas[90] || studentMeas[120] || 90);
-        const startAng = Math.PI + Math.PI * 0.5 - (ang / 2) * Math.PI / 180;
-        const endAng   = Math.PI + Math.PI * 0.5 + (ang / 2) * Math.PI / 180;
+        // 預設角度改為 60，確保圖形與表格預設值一致
+        const ang = (studentMeas[60] || studentMeas[90] || studentMeas[120] || 60);
+        // 讓開口朝上 (270度) 以呈現「碗」的形狀，避免標籤被左右裁切
+        const startAng = (270 - ang / 2) * Math.PI / 180;
+        const endAng   = (270 + ang / 2) * Math.PI / 180;
 
-        // 圓心點
         ctx.beginPath();
         ctx.arc(cx, cy, 6, 0, Math.PI * 2);
         ctx.fillStyle = '#ef4444'; ctx.fill();
 
-        // 兩條半徑線
-        ctx.beginPath(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2;
-        ctx.moveTo(cx, cy); ctx.lineTo(cx + maxR * Math.cos(startAng), cy + maxR * Math.sin(startAng));
-        ctx.moveTo(cx, cy); ctx.lineTo(cx + maxR * Math.cos(endAng),   cy + maxR * Math.sin(endAng));
+        // 輔助線
+        ctx.beginPath(); ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+        ctx.moveTo(cx, cy); ctx.lineTo(cx + (120 * rScaleFactor) * Math.cos(startAng), cy + (120 * rScaleFactor) * Math.sin(startAng));
+        ctx.moveTo(cx, cy); ctx.lineTo(cx + (120 * rScaleFactor) * Math.cos(endAng),   cy + (120 * rScaleFactor) * Math.sin(endAng));
         ctx.stroke();
 
-        // 三個同角度不同半徑的弧
-        const radii  = [maxR * 0.40, maxR * 0.60, maxR * 0.82];
+        const baseRadii = [60, 90, 120];
         const colors = ['#93c5fd', '#60a5fa', '#2563eb'];
         const labels = ['r=60', 'r=90', 'r=120'];
-        radii.forEach((r, i) => {
-          ctx.beginPath(); ctx.strokeStyle = colors[i]; ctx.lineWidth = 9 + i * 3; ctx.lineCap = 'round';
-          ctx.arc(cx, cy, r, startAng, endAng); ctx.stroke();
-          // 標示半徑
+        
+        baseRadii.forEach((baseR, i) => {
+          const r = baseR * rScaleFactor; 
+          ctx.beginPath(); 
+          ctx.strokeStyle = colors[i]; 
+          ctx.lineWidth = 8 + i * 2; 
+          ctx.lineCap = 'round';
+          ctx.arc(cx, cy, r, startAng, endAng); 
+          ctx.stroke();
+          
           const midAng = (startAng + endAng) / 2;
-          const lx = cx + (r + 14) * Math.cos(midAng);
-          const ly = cy + (r + 14) * Math.sin(midAng);
-          ctx.fillStyle = colors[i]; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+          const lx = cx + (r + 15) * Math.cos(midAng);
+          const ly = cy + (r + 15) * Math.sin(midAng);
+          ctx.fillStyle = colors[i]; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
           ctx.fillText(labels[i], lx, ly);
         });
 
-        // 顯示學生角度
-        ctx.fillStyle = '#64748b'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('角度 = ' + ang.toFixed(1) + '°', cx, 18);
+        // 頂部顯示資訊
+        ctx.fillStyle = '#64748b'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('當前探究角度：' + ang.toFixed(1) + '°', cx, 25);
       }
 
-      // <!-- CHANGED: Stage 2 Evidence Card B -->
       function drawEvB(ctx, w, h) {
         const cx = w / 2, cy = h / 2, r = Math.min(w, h) * 0.35;
         ctx.beginPath(); ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2; ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
@@ -3962,14 +4051,12 @@
         });
       }
 
-      // <!-- CHANGED: Stage 2 Evidence Card C (New Visuals) -->
-      // [Stage2-C] patched v3-overlay
       function updateStage2C() {
         const elIds = ['sl-angle', 'sl-radius', 'val-angle', 'val-radius', 'txt-ratio-angle', 'txt-ratio-arc', 'bar-angle', 'bar-arc', 'evCC'];
         const els = {};
         for (let id of elIds) {
           const el = document.getElementById(id);
-          if (!el) { console.warn('Stage2-C 節點未找到:', id); return; }
+          if (!el) { return; }
           els[id] = el;
         }
 
@@ -3977,7 +4064,6 @@
         const radius = parseFloat(els['sl-radius'].value);
         const ratio = angle / 360;
 
-        // Update Text
         els['val-angle'].textContent = angle + '°';
         els['val-radius'].textContent = radius.toFixed(1);
 
@@ -3985,13 +4071,11 @@
         els['txt-ratio-angle'].textContent = pctStr;
         els['txt-ratio-arc'].textContent = pctStr;
 
-        // Update Bars
         els['bar-angle'].style.width = (ratio * 100) + '%';
         els['bar-arc'].style.width = (ratio * 100) + '%';
 
         const dpr = window.devicePixelRatio || 1;
 
-        // Helper to init canvas size
         function initCV(cv) {
           if (cv.width !== 240 * dpr) {
             cv.width = 240 * dpr;
@@ -4010,20 +4094,17 @@
         const startAng = -Math.PI / 2;
         const endAng = startAng + (angle * Math.PI / 180);
 
-        // -- Layer 1: Bottom (Full Circle + Highlight Arc) --
         const cvFull = document.getElementById('evCC_full');
         if (cvFull) {
           const ctxF = initCV(cvFull);
           ctxF.clearRect(0, 0, w, h);
 
-          // Full Circle (Grey)
           ctxF.beginPath();
-          ctxF.strokeStyle = '#cbd5e1'; // slate-300
+          ctxF.strokeStyle = '#cbd5e1'; 
           ctxF.lineWidth = 4;
           ctxF.arc(cx, cy, r, 0, Math.PI * 2);
           ctxF.stroke();
 
-          // Highlight Arc (Green) on bottom layer too for reference
           ctxF.beginPath();
           ctxF.strokeStyle = '#10b981';
           ctxF.lineWidth = 4;
@@ -4031,12 +4112,10 @@
           ctxF.stroke();
         }
 
-        // -- Layer 2: Top (Sector + Labels) --
         const canvas = els['evCC'];
         const ctx = initCV(canvas);
         ctx.clearRect(0, 0, w, h);
 
-        // Sector (Blue)
         ctx.beginPath();
         ctx.moveTo(cx, cy);
         ctx.arc(cx, cy, r, startAng, endAng);
@@ -4044,7 +4123,6 @@
         ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
         ctx.fill();
 
-        // 2 Radius Lines
         ctx.beginPath();
         ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 2;
@@ -4052,136 +4130,38 @@
         ctx.moveTo(cx, cy); ctx.lineTo(cx + r * Math.cos(endAng), cy + r * Math.sin(endAng));
         ctx.stroke();
 
-        // Arc (Thicker Green on top)
         ctx.beginPath();
         ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 8; // Thicker than bottom
+        ctx.lineWidth = 8; 
         ctx.lineCap = 'round';
         ctx.arc(cx, cy, r, startAng, endAng);
         ctx.stroke();
 
-        // Theta Text
         if (angle > 0) {
-          ctx.fillStyle = '#1d4ed8'; // Darker blue
+          ctx.fillStyle = '#1d4ed8'; 
           ctx.font = 'bold 16px monospace';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           const mid = startAng + (endAng - startAng) / 2;
-          // Push text out a bit
           const tx = cx + (r * 0.4) * Math.cos(mid);
           const ty = cy + (r * 0.4) * Math.sin(mid);
           ctx.fillText(angle + '°', tx, ty);
         }
 
-        // L Text
         ctx.fillStyle = '#0f172a';
         ctx.font = '14px system-ui';
         ctx.textAlign = 'center';
-        // Position at bottom center
         ctx.fillText('L ≈ ' + (2 * Math.PI * (radius) * (angle / 360)).toFixed(2) + ' units', cx, h - 8);
-
-        if (!window._s2cLogged) {
-          console.log('[Stage2-C] overlay full-circle OK');
-          window._s2cLogged = true;
-        }
       }
 
-
-
-      /*
-      // Update Text
-      els['val-angle'].textContent = angle + '°';
-      els['val-radius'].textContent = radius.toFixed(1);
-
-      const pctStr = (ratio * 100).toFixed(1) + '%';
-      els['txt-ratio-angle'].textContent = pctStr;
-      els['txt-ratio-arc'].textContent = pctStr;
-
-      // Update Bars
-      els['bar-angle'].style.width = (ratio * 100) + '%';
-      els['bar-arc'].style.width = (ratio * 100) + '%';
-
-      // Draw Canvas
-      const canvas = els['evCC'];
-      const ctx = canvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
-      // Ensure size 240x240
-      if (canvas.width !== 240 * dpr) {
-        canvas.width = 240 * dpr;
-        canvas.height = 240 * dpr;
-        canvas.style.width = '240px';
-        canvas.style.height = '240px';
-      }
-      ctx.resetTransform();
-      ctx.scale(dpr, dpr);
-
-      const w = 240, h = 240, cx = 120, cy = 120;
-
-      // Calc visual radius. User said "基準半徑 = 80 * radius"
-      const r = 80 * radius;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const startAng = -Math.PI / 2;
-      const endAng = startAng + (angle * Math.PI / 180);
-
-      // Sector
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, startAng, endAng);
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(59, 130, 246, 0.25)';
-      ctx.fill();
-
-      // 2 Radius Lines
-      ctx.beginPath();
-      ctx.strokeStyle = '#3b82f6';
-      ctx.lineWidth = 2;
-      ctx.moveTo(cx, cy); ctx.lineTo(cx + r * Math.cos(startAng), cy + r * Math.sin(startAng));
-      ctx.moveTo(cx, cy); ctx.lineTo(cx + r * Math.cos(endAng), cy + r * Math.sin(endAng));
-      ctx.stroke();
-
-      // Arc
-      ctx.beginPath();
-      ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 6;
-      ctx.arc(cx, cy, r, startAng, endAng);
-      ctx.stroke();
-
-      // Theta Text
-      if (angle > 0) {
-        ctx.fillStyle = '#3b82f6';
-        ctx.font = 'bold 16px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const mid = startAng + (endAng - startAng) / 2;
-        ctx.fillText('θ=' + angle + '°', cx + (r * 0.5) * Math.cos(mid), cy + (r * 0.5) * Math.sin(mid));
-      }
-
-      // L Text
-      ctx.fillStyle = '#1e293b';
-      ctx.font = '14px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText('L = 2πr × (θ/360)', cx, h - 10);
-
-      if (!window._s2cLogged) {
-        console.log('[Stage2-C] patched v2-check-C');
-        window._s2cLogged = true;
-      }
-      }
-      */
-
-      // <!-- CHANGED: Stage 2 Sync & Feedback with strict mapping -->
       function initStage2Interactions() {
         const slTheta = document.getElementById('sl-angle');
         const slR = document.getElementById('sl-radius');
         if (slTheta && slR) {
           slTheta.oninput = updateStage2C;
           slR.oninput = updateStage2C;
-          // No immediate call here, called in showS2
         }
 
-        // Quiz Logic
         document.querySelectorAll('.question').forEach(q => {
           const handler = (e) => {
             const id = q.dataset.q;
@@ -4196,7 +4176,6 @@
           q.addEventListener('mouseenter', handler);
         });
 
-        // Quiz option selection
         document.querySelectorAll('.option input').forEach(input => {
           input.addEventListener('change', function () {
             const isRadio = this.type === 'radio';
@@ -4204,7 +4183,6 @@
             const qDiv = this.closest('.question');
             const isCorrect = row.dataset.correct === 'true';
 
-            // If radio, reset others
             if (isRadio) {
               qDiv.querySelectorAll('.option').forEach(opt => {
                 opt.style.background = '#fff';
@@ -4212,7 +4190,6 @@
                 opt.querySelectorAll('.fb-icon').forEach(i => i.remove());
               });
             } else {
-              // If checkbox unchecked, clean up
               if (!this.checked) {
                 row.style.background = '#fff';
                 row.style.borderColor = 'var(--line)';
@@ -4221,11 +4198,9 @@
               }
             }
 
-            // Apply style
             row.style.background = isCorrect ? '#f0fdf4' : '#fef2f2';
             row.style.borderColor = isCorrect ? 'var(--good)' : 'var(--bad)';
 
-            // Add icon
             row.querySelectorAll('.fb-icon').forEach(i => i.remove());
             const icon = document.createElement('span');
             icon.className = 'fb-icon';
@@ -4235,11 +4210,8 @@
             icon.style.color = isCorrect ? 'var(--good)' : 'var(--bad)';
             row.appendChild(icon);
 
-            // Update Card Feedback
             const qId = qDiv.dataset.q;
             updateCardFeedback(qId, isCorrect);
-
-            // Check all completion
             checkS2Completion();
           });
         });
@@ -4260,12 +4232,10 @@
         const q2 = document.querySelector('.question[data-q="2"] input:checked') && document.querySelector('.question[data-q="2"] .option[data-correct="true"] input:checked');
         const q3 = document.querySelector('.question[data-q="3"] input:checked') && document.querySelector('.question[data-q="3"] .option[data-correct="true"] input:checked');
 
-        // Add Q4, Q5 checks
         const q4 = document.querySelector('.question[data-q="4"] input:checked') && document.querySelector('.question[data-q="4"] .option[data-correct="true"] input:checked');
         const q5 = document.querySelector('.question[data-q="5"] input:checked') && document.querySelector('.question[data-q="5"] .option[data-correct="true"] input:checked');
 
         if (q1 && q2 && q3) {
-          // Show Discovery Section
           const secD = document.getElementById('sec-discovery');
           if (secD) secD.style.display = 'block';
 
@@ -4274,14 +4244,12 @@
           }
         }
       }
-      // <!-- CHANGED: Stage 2 Logic End -->
 
       function updateNavState(s) {
         const back = document.getElementById('gh-back');
         const next = document.getElementById('gh-next');
         const title = document.getElementById('gh-title');
 
-        // Reset
         back.onclick = null; next.onclick = null;
         back.classList.remove('disabled'); next.classList.remove('disabled');
 
@@ -4309,6 +4277,63 @@
           next.href = "inscribed_angle_theore_working.html";
         }
       }
+
+      // Calculator logic
+      window.calcVal = '';
+      window.calcType = function(v) {
+        window.calcVal += v;
+        window.updateCalcDisplay();
+      };
+      window.updateCalcDisplay = function() {
+        const d = document.getElementById('calcDisplay');
+        if (!window.calcVal) d.value = '0';
+        else d.value = window.calcVal.replace(/\*/g, '×').replace(/\//g, '÷');
+      };
+      window.calcClear = function() { window.calcVal = ''; window.updateCalcDisplay(); };
+      window.calcBack = function() { window.calcVal = window.calcVal.slice(0, -1); window.updateCalcDisplay(); };
+      window.calcEval = function() {
+        try {
+          if(!window.calcVal) return;
+          let res = eval(window.calcVal);
+          res = Math.round(res * 1000) / 1000;
+          window.calcVal = res.toString();
+          window.updateCalcDisplay();
+        } catch (e) {
+          document.getElementById('calcDisplay').value = 'Error';
+          setTimeout(window.calcClear, 1000);
+        }
+      };
+      window.toggleCalc = function() {
+        document.getElementById('calcWidget').classList.toggle('show');
+      };
+      
+      // Draggable calculator initialization
+      window.addEventListener('DOMContentLoaded', () => {
+        const calc = document.getElementById('calcWidget');
+        const calcHeader = document.getElementById('calcHeader');
+        let isDragging = false, cx, cy, ox, oy;
+        if(calcHeader) {
+          calcHeader.addEventListener('pointerdown', e => {
+            if(e.target.tagName === 'BUTTON') return;
+            isDragging = true;
+            cx = e.clientX; cy = e.clientY;
+            ox = calc.offsetLeft; oy = calc.offsetTop;
+            calc.style.bottom = 'auto'; 
+            calc.style.right = 'auto';
+            calc.style.left = ox + 'px';
+            calc.style.top = oy + 'px';
+            calcHeader.setPointerCapture(e.pointerId);
+          });
+          calcHeader.addEventListener('pointermove', e => {
+            if (!isDragging) return;
+            calc.style.left = (ox + e.clientX - cx) + 'px';
+            calc.style.top = (oy + e.clientY - cy) + 'px';
+          });
+          calcHeader.addEventListener('pointerup', e => {
+            isDragging = false;
+          });
+        }
+      });
 
     })();
   </script>
