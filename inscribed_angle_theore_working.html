@@ -1,0 +1,3839 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圓周角定理互動證明系統</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* 幾何溫暖配色 */
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --dark: #2D3142;
+            --light: #F8F9FA;
+            --success: #51CF66;
+            --locked: #ADB5BD;
+
+            /* 字體系統 */
+            --font-display: 'Urbanist', sans-serif;
+            --font-body: 'Noto Sans TC', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 1400px;
+            height: 90vh;
+            max-height: 900px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        /* 頁籤導航 */
+        .tabs {
+            display: flex;
+            background: var(--dark);
+            padding: 8px;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 16px 24px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: var(--dark);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 內容區域 */
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* 水平雙欄布局 */
+        .split-layout {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .canvas-area {
+            flex: 4;
+            /* Left 4 */
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+            overflow: hidden;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Special positioning for Tab A controls */
+        #tab1 .controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: auto;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        #tab1 .controls .btn {
+            width: auto;
+            padding: 6px 12px;
+            font-size: 11px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Special positioning for Tab B controls */
+        #tab2 .angle-buttons {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: auto;
+            display: flex;
+            gap: 6px;
+            margin: 0;
+            z-index: 10;
+            grid-template-columns: none;
+        }
+
+        #tab2 .angle-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-width: 1px;
+            border-radius: 8px;
+        }
+
+        #tab2 .controls {
+            position: absolute;
+            top: 55px;
+            right: 15px;
+            width: auto;
+            z-index: 10;
+        }
+
+        #tab2 .controls .btn {
+            width: auto;
+            padding: 6px 12px;
+            font-size: 11px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-area {
+            flex: 3;
+            /* Right 3 */
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border-left: 2px solid #e9ecef;
+            min-width: 320px;
+            box-sizing: border-box;
+        }
+
+        /* 美化滾動條 */
+        .info-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .info-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .info-area::-webkit-scrollbar-thumb {
+            background: #dee2e6;
+            border-radius: 3px;
+        }
+
+        .info-area::-webkit-scrollbar-thumb:hover {
+            background: #adb5bd;
+        }
+
+        /* --- Tab B 專屬樣式 --- */
+        #tab2 .info-area {
+            /* Follow global layout 4:3 */
+        }
+
+        /* --- Tab C 專屬樣式 --- */
+        #tab3 .split-layout {
+            justify-content: center;
+        }
+
+
+        #tab3 .info-area {
+            flex: 3;
+            max-width: none;
+        }
+
+        #tab3 .canvas-area {
+            flex: 4;
+            max-width: none;
+        }
+
+        #tab3 .canvas-container {
+            max-height: 420px;
+        }
+
+        #tab3 canvas {
+            max-width: 100%;
+            max-height: 400px;
+        }
+
+        #tab2 .canvas-area {
+            /* Inherit global 4:3 layout */
+        }
+
+        /* Tab B 專屬問答樣式 */
+        #tab2 .radio-group {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        #tab2 .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 90px;
+            font-size: 13px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        #tab2 .radio-item input[type="radio"] {
+            margin: 0;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* -------------------- */
+
+        /* Canvas 容器 */
+        .canvas-container {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            touch-action: none;
+            cursor: grab;
+            display: block;
+        }
+
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        /* 控制按鈕 */
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 10px;
+            font-family: var(--font-body);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #45b8b0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #40c057;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(81, 207, 102, 0.4);
+        }
+
+        .btn-locked {
+            background: var(--locked);
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-locked:hover {
+            transform: none;
+        }
+
+        /* 資訊卡片 */
+        .info-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .info-card p {
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+            line-height: 1.5;
+            color: #495057;
+        }
+
+        .info-title {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-label {
+            font-size: 13px;
+            color: #495057;
+        }
+
+        .data-value {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* 輸入框 */
+        textarea,
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-family: var(--font-body);
+            font-size: 14px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+
+        textarea {
+            min-height: 80px;
+            max-height: 120px;
+        }
+
+        /* 浮動結論卡片 */
+        .conclusion-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .conclusion-overlay.show,
+        .conclusion-overlay.active {
+            display: flex;
+        }
+
+        .conclusion-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease;
+        }
+
+        .conclusion-header {
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .conclusion-content {
+            font-size: 24px;
+            line-height: 1.8;
+            color: #495057;
+            margin-bottom: 24px;
+        }
+
+        .conclusion-highlight {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-weight: 500;
+        }
+
+        /* 特殊角按鈕組 */
+        .angle-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .angle-btn {
+            padding: 16px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--dark);
+        }
+
+        .angle-btn:hover {
+            border-color: var(--secondary);
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .angle-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+        }
+
+        /* 步驟卡片 */
+        .step-card {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .step-card p {
+            margin: 8px 0;
+            font-size: 20px;
+            line-height: 1.5;
+            color: #495057;
+        }
+
+        .step-card strong {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            font-size: 20px;
+            color: var(--dark);
+        }
+
+        .step-card.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .step-card.active {
+            border-color: var(--secondary);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.2);
+        }
+
+        .step-card.completed {
+            border-color: var(--success);
+            background: rgba(81, 207, 102, 0.05);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-family: var(--font-display);
+            font-size: 14px;
+        }
+
+        .step-card.locked .step-number {
+            background: var(--locked);
+        }
+
+        .step-card.completed .step-number {
+            background: var(--success);
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* 填空題 */
+        .blank-input {
+            display: inline-block;
+            width: 80px;
+            padding: 6px 12px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .blank-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 4px 10px rgba(78, 205, 196, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .blank-input.correct {
+            border-color: var(--success);
+            background: rgba(81, 207, 102, 0.1);
+        }
+
+        .blank-input.incorrect {
+            border-color: var(--primary);
+            background: rgba(255, 107, 107, 0.1);
+            animation: shake 0.5s ease;
+        }
+
+        /* 關卡選擇 */
+        .case-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .case-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-family: var(--font-body);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1.3;
+        }
+
+        .case-btn:hover:not(.locked) {
+            border-color: var(--secondary);
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .case-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .case-btn.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* 動畫 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        /* 提示文字 */
+        .hint {
+            font-size: 18px;
+            color: #868e96;
+            font-style: italic;
+            margin-top: 6px;
+        }
+
+        /* 勾選框 */
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 6px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #e9ecef;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        /* 探索計數器 */
+        .explore-counter {
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 20px;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        input[type="text"].inline-input {
+            width: auto;
+            min-width: 80px;
+            max-width: 120px;
+            display: inline-block;
+            padding: 4px 12px;
+            margin: 0 6px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 20px;
+            text-align: center;
+            font-family: var(--font-body);
+            font-size: 22px;
+            color: var(--dark);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            vertical-align: middle;
+        }
+
+        input[type="text"].inline-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: white;
+            box-shadow: 0 4px 10px rgba(78, 205, 196, 0.2);
+            transform: translateY(-1px);
+        }
+
+        input[type="text"].inline-input.visited {
+            border-color: var(--primary);
+        }
+
+        .question-item {
+            margin-bottom: 16px;
+            font-size: 22px;
+            line-height: 2;
+            color: #495057;
+        }
+
+        .hint-text {
+            font-size: 16px;
+            color: #868e96;
+            margin-left: 4px;
+        }
+
+        .inline-input:focus {
+            outline: none;
+            border-bottom-color: var(--primary);
+        }
+
+        .observation-panel {
+            opacity: 0.5;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .observation-panel.unlocked {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ===== 響應式設計 ===== */
+
+        /* 平滑滾動 */
+        html {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 觸控優化 */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 平板裝置 (768px - 1024px) */
+        @media screen and (max-width: 1024px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                height: 95vh;
+                max-height: none;
+                border-radius: 16px;
+            }
+
+            .tabs {
+                padding: 6px;
+                gap: 4px;
+            }
+
+            .tab-button {
+                padding: 12px 16px;
+                font-size: 20px;
+            }
+
+            .split-layout {
+                flex-direction: column;
+            }
+
+            .canvas-area {
+                flex: none;
+                height: 45vh;
+                min-height: 300px;
+                padding: 8px;
+            }
+
+            .info-area {
+                flex: 1;
+                min-width: auto;
+                border-left: none;
+                border-top: 2px solid #e9ecef;
+                padding: 16px;
+                overflow-y: auto;
+            }
+
+            /* wizard-area 直向平板 */
+            .wizard-area {
+                max-width: none;
+                min-width: 0;
+                width: 100%;
+                border-left: none;
+                border-top: 2px solid #e9ecef;
+                max-height: 48vh;
+                overflow-y: auto;
+            }
+
+            .case-selector {
+                flex-wrap: wrap;
+            }
+
+            .case-btn {
+                flex: 1 1 30%;
+                min-width: 100px;
+                font-size: 14px;
+                padding: 10px 8px;
+            }
+
+            .step-card {
+                padding: 14px;
+            }
+
+            .step-card p {
+                font-size: 18px;
+            }
+
+            .btn {
+                padding: 14px 20px;
+                font-size: 18px;
+                min-height: 48px;
+            }
+
+            input[type="text"].inline-input {
+                font-size: 20px;
+                padding: 10px 14px;
+                min-height: 48px;
+            }
+
+            .checkbox-item {
+                padding: 14px;
+                min-height: 48px;
+            }
+
+            .checkbox-item input[type="checkbox"] {
+                width: 24px;
+                height: 24px;
+            }
+
+            .checkbox-item label {
+                font-size: 18px;
+            }
+        }
+
+        /* 手機裝置 (小於 768px) */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 5px;
+                overflow: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+                border-radius: 12px;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                flex: 1 1 100%;
+                padding: 14px 12px;
+                font-size: 18px;
+                text-align: center;
+            }
+
+            .split-layout {
+                flex-direction: column;
+                overflow: visible;
+            }
+
+            .canvas-area {
+                height: auto;
+                min-height: 280px;
+                max-height: 40vh;
+            }
+
+            .info-area {
+                padding: 14px;
+                overflow-y: visible;
+            }
+
+            .case-selector {
+                flex-direction: column;
+            }
+
+            .case-btn {
+                flex: none;
+                width: 100%;
+                font-size: 16px;
+                padding: 14px;
+            }
+
+            .step-card p {
+                font-size: 18px;
+                line-height: 1.7;
+            }
+
+            .info-title {
+                font-size: 20px;
+            }
+
+            .btn {
+                padding: 16px 20px;
+                font-size: 18px;
+            }
+
+            input[type="text"].inline-input {
+                width: 80px !important;
+                min-width: 70px;
+                font-size: 18px;
+            }
+
+            .angle-buttons {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .angle-btn {
+                padding: 14px;
+                font-size: 20px;
+            }
+
+            .conclusion-card {
+                padding: 24px;
+                margin: 10px;
+                max-width: 95%;
+            }
+
+            .conclusion-header {
+                font-size: 28px;
+            }
+
+            .conclusion-content {
+                font-size: 20px;
+            }
+        }
+
+        /* 超小螢幕 (小於 480px) */
+        @media screen and (max-width: 480px) {
+            .tab-button {
+                padding: 12px 8px;
+                font-size: 16px;
+            }
+
+            .canvas-area {
+                min-height: 250px;
+            }
+
+            .step-title {
+                font-size: 18px;
+            }
+        }
+
+        /* 觸控裝置特定優化 */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover {
+                transform: none;
+            }
+
+            .case-btn:hover:not(.locked) {
+                background: white;
+                border-color: #e9ecef;
+            }
+
+            .case-btn.active:hover {
+                background: var(--secondary);
+                border-color: var(--secondary);
+            }
+
+            /* 增加觸控目標大小 */
+            .btn,
+            .case-btn,
+            .angle-btn,
+            .checkbox-item {
+                min-height: 48px;
+            }
+
+            input[type="text"].inline-input {
+                min-height: 44px;
+            }
+        }
+
+        /* 橫向模式平板 */
+        @media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+            .split-layout {
+                flex-direction: row;
+            }
+
+            .canvas-area {
+                flex: 1;
+                height: 100%;
+                max-height: none;
+            }
+
+            .info-area {
+                flex: 1;
+                border-top: none;
+                border-left: 2px solid #e9ecef;
+            }
+
+            /* wizard-area 橫向平板 */
+            .wizard-area {
+                flex: 1;
+                min-width: 0;
+                max-width: none;
+                width: auto;
+                height: 100%;
+                border-left: 2px solid #e9ecef;
+                border-top: none;
+                max-height: none;
+                overflow-y: auto;
+            }
+        }
+
+        /* 直向模式平板：canvas 與精靈各占一半 */
+        @media screen and (max-width: 1024px) and (orientation: portrait) {
+            .canvas-area {
+                height: 48vh;
+                min-height: 300px;
+                flex: none;
+            }
+            .wizard-area {
+                flex: 1;
+                max-height: none;
+                height: auto;
+                overflow-y: auto;
+            }
+            /* Tab 按鈕直向縮小字體避免換行 */
+            .tab-button {
+                font-size: 15px;
+                padding: 10px 8px;
+            }
+        }
+        :root {
+            --ds-bg: #f8fafc;
+            --ds-panel: #ffffff;
+            --ds-text: #1e293b;
+            --ds-muted: #64748b;
+            --ds-line: #e2e8f0;
+            --ds-accent: #3b82f6;
+            --ds-good: #10b981;
+            --ds-bad: #ef4444;
+            --ds-font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+            --ds-radius: 16px;
+            --ds-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            background-color: var(--ds-bg) !important;
+            color: var(--ds-text) !important;
+            font-family: var(--ds-font) !important;
+            line-height: normal !important;
+            padding-top: 80px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+            /* Lock body, scroll inside container */
+        }
+
+        /* Global Header */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: var(--ds-panel);
+            border-bottom: 1px solid var(--ds-line);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .topbar__brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--ds-accent);
+            text-decoration: none;
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar__nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .topbar__link {
+            color: var(--ds-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .topbar__link:hover {
+            background: var(--ds-bg);
+            color: var(--ds-text);
+        }
+
+        .topbar__link.active {
+            color: var(--ds-accent);
+            background: #eff6ff;
+        }
+
+        @media (max-width: 768px) {
+            .topbar {
+                padding: 0 12px;
+            }
+
+            .topbar__nav {
+                display: none;
+            }
+        }
+
+        .container {
+            /* Adapt to card style */
+            width: 100%;
+            max-width: 95vw !important;
+            height: calc(100vh - 100px) !important;
+            max-height: none !important;
+            background: var(--ds-panel);
+            border: 1px solid var(--ds-line);
+            border-radius: var(--ds-radius);
+            box-shadow: var(--ds-shadow);
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hide old header stuff */
+        .global-header {
+            display: none !important;
+        }
+        /* =============================================
+           UX 優化：浮動數據 + 步驟精靈 + 選片
+        ============================================= */
+
+        /* 浮動數據徽章（貼在 Canvas 左下角） */
+        .data-float {
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            background: rgba(255,255,255,0.96);
+            border-radius: 14px;
+            padding: 10px 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+            backdrop-filter: blur(6px);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 160px;
+            border: 1.5px solid #e9ecef;
+            pointer-events: none;
+        }
+
+        .data-float-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .data-float-label {
+            font-size: 13px;
+            color: #868e96;
+            white-space: nowrap;
+        }
+
+        .data-float-value {
+            font-family: 'Urbanist', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* 步驟點進度指示器 */
+        .step-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 0 4px;
+            flex-shrink: 0;
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #dee2e6;
+            transition: all 0.35s ease;
+            cursor: default;
+        }
+
+        .step-dot.done { background: var(--success); }
+        .step-dot.active { background: var(--secondary); transform: scale(1.4); }
+
+        .step-dot-label {
+            font-size: 12px;
+            color: #adb5bd;
+            font-family: var(--font-body);
+        }
+
+        /* 選片 (Choice Chips) */
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .chip {
+            padding: 10px 20px;
+            border: 2.5px solid #e9ecef;
+            border-radius: 100px;
+            font-family: var(--font-body);
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .chip:hover { border-color: var(--secondary); color: var(--secondary); background: rgba(78,205,196,0.06); }
+        .chip.selected-yes { border-color: var(--success); background: rgba(81,207,102,0.12); color: #2f9e44; }
+        .chip.selected-no  { border-color: var(--primary); background: rgba(255,107,107,0.10); color: #c92a2a; }
+        .chip.selected-neutral { border-color: var(--secondary); background: rgba(78,205,196,0.12); color: #0c8599; }
+
+        /* 精靈右欄 — 無 padding-top 浪費 */
+        .wizard-area {
+            flex: 3;
+            background: white;
+            border-left: 2px solid #e9ecef;
+            min-width: 300px;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .wizard-header {
+            padding: 14px 18px 8px;
+            border-bottom: 1px solid #f1f3f5;
+            flex-shrink: 0;
+        }
+
+        .wizard-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .wizard-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .wizard-body::-webkit-scrollbar { width: 4px; }
+        .wizard-body::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 2px; }
+
+        .wizard-footer {
+            padding: 12px 18px;
+            border-top: 1px solid #f1f3f5;
+            flex-shrink: 0;
+        }
+
+        /* 精靈步驟卡（更簡潔） */
+        .wiz-card {
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: 2px solid #f1f3f5;
+            transition: border-color 0.3s, opacity 0.3s;
+        }
+
+        .wiz-card.active { border-color: var(--secondary); }
+        .wiz-card.done   { border-color: var(--success); background: rgba(81,207,102,0.04); }
+        .wiz-card.locked { opacity: 0.38; pointer-events: none; }
+
+        .wiz-card-num {
+            display: inline-flex;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--font-display);
+            color: white;
+            background: var(--secondary);
+            margin-right: 6px;
+            flex-shrink: 0;
+        }
+
+        .wiz-card.done .wiz-card-num { background: var(--success); }
+        .wiz-card.locked .wiz-card-num { background: var(--locked); }
+
+        .wiz-card-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .wiz-card p { font-size: 17px; line-height: 1.65; color: #495057; margin: 0; }
+
+        /* 觀察題輸入（全寬，大字） */
+        .obs-q { margin-bottom: 10px; }
+        .obs-q-label { font-size: 16px; color: #868e96; margin-bottom: 6px; }
+        .obs-input {
+            width: 100%;
+            padding: 9px 13px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 17px;
+            font-family: var(--font-body);
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .obs-input:focus { outline: none; border-color: var(--secondary); }
+
+        /* 進度條（canvas 下方薄帶） */
+        .canvas-progress {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            flex-shrink: 0;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        .canvas-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--success));
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        /* Tab C 保留原本可捲動 info-area */
+        #tab3 .info-area {
+            flex: 3;
+            background: white;
+            padding: 16px;
+            overflow-y: auto;
+            border-left: 2px solid #e9ecef;
+            min-width: 300px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <a href="index.html" class="topbar__brand">幾何探究實驗室</a>
+        <nav class="topbar__nav">
+            <a href="index.html" class="topbar__link">首頁</a>
+            <a href="circle_explorer_fixed.html" class="topbar__link">圓形探究</a>
+            <a href="circle_adventure_0104.html" class="topbar__link">視覺實驗</a>
+            <a href="inscribed_angle_theore_working.html" class="topbar__link active">圓周角證明</a>
+        </nav>
+    </header>
+
+    <!-- Learning Guide Modal Removed -->
+
+    <div class="container">
+        <!-- 頁籤導航 -->
+        <div class="tabs">
+            <button class="tab-button active" data-tab="tab2">A. 特殊角出發</button>
+            <button class="tab-button" data-tab="tab1">B. 一般化驗證</button>
+            <button class="tab-button" data-tab="tab3">C. 分類證明</button>
+        </div>
+
+        <!-- Tab A 視覺順序 = tab2 (特殊角出發) -->
+        <div id="tab1" class="tab-content">
+            <div class="split-layout">
+                <div class="canvas-area">
+                    <div class="canvas-container">
+                        <canvas id="canvasA"></canvas>
+                        <!-- 浮動數據徽章 -->
+                        <div class="data-float">
+                            <div class="data-float-row">
+                                <span class="data-float-label">圓心角 ∠AOB</span>
+                                <span class="data-float-value" id="centralAngleA" style="color:#FF6B6B;">—</span>
+                            </div>
+                            <div class="data-float-row">
+                                <span class="data-float-label">圓周角 ∠APB</span>
+                                <span class="data-float-value" id="inscribedAngleA" style="color:#4ECDC4;">—</span>
+                            </div>
+                            <div class="data-float-row" style="padding-top:4px; border-top:1px solid #f1f3f5; margin-top:2px;">
+                                <span class="data-float-label">∠AOB ÷ ∠APB</span>
+                                <span class="data-float-value" id="ratioA" style="color:#764ba2;">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 進度條 -->
+                    <div class="canvas-progress">
+                        <div class="canvas-progress-fill" id="progressA" style="width:0%"></div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-primary" onclick="resetTabA()">重設</button>
+                        <button class="btn btn-secondary" onclick="toggleHelpers('A')">輔助線</button>
+                    </div>
+                </div>
+
+                <!-- 精靈右欄 — Tab B 一般化驗證 -->
+                <div class="wizard-area">
+                    <div class="wizard-header">
+                        <div class="wizard-title">🌐 B. 一般化驗證</div>
+                        <!-- 橋接語 -->
+                        <div style="margin-top: 8px; background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%); border-radius: 10px; padding: 10px 12px; border-left: 4px solid #f39c12; font-size: 14px; color: #795548; line-height: 1.7;">
+                            你在 <strong>A 特殊角</strong> 發現特殊角下<br>
+                            <strong>∠AOB = 2 × ∠APB</strong><br>
+                            換任意弧，這個規律還成立嗎？
+                        </div>
+                        <div class="step-dots" style="justify-content:flex-start; gap:6px; padding:8px 0 0;">
+                            <div class="step-dot active" id="dotA1"></div>
+                            <div class="step-dot-label" id="dotA1Label" style="font-size:13px; color:var(--secondary); font-weight:600;">改變弧</div>
+                            <div style="width:18px; height:2px; background:#dee2e6; border-radius:1px;"></div>
+                            <div class="step-dot" id="dotA2"></div>
+                            <div class="step-dot-label" id="dotA2Label" style="font-size:13px; color:#adb5bd;">移動 P</div>
+                            <div style="width:18px; height:2px; background:#dee2e6; border-radius:1px;"></div>
+                            <div class="step-dot" id="dotA3"></div>
+                            <div class="step-dot-label" id="dotA3Label" style="font-size:13px; color:#adb5bd;">理解不變性</div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-body">
+
+                        <!-- 步驟 1：改變弧 -->
+                        <div class="wiz-card active" id="wizA1">
+                            <div class="wiz-card-title">
+                                <span class="wiz-card-num">1</span>任意弧：拖曳 A 或 B
+                            </div>
+                            <p>拖曳 <strong style="color:#FF6B6B">A</strong> 或 <strong style="color:#FF6B6B">B</strong>（虛線框的點）到任意位置，設定一段弧。<br>
+                                <span style="color:#868e96; font-size:15px;">左下角數字即時更新</span></p>
+                            <div style="margin-top:12px; display:flex; align-items:baseline; gap:6px; justify-content:center;">
+                                <span id="abDragDisplay" style="font-size:36px; font-weight:800; font-family:'Urbanist',sans-serif; color:var(--secondary); line-height:1;">0</span>
+                                <span style="font-size:15px; color:#868e96;">/ 3 次</span>
+                            </div>
+                        </div>
+
+                        <!-- 步驟 2：移動 P（鎖定） -->
+                        <div class="wiz-card locked" id="wizA2">
+                            <div class="wiz-card-title">
+                                <span class="wiz-card-num">2</span>固定弧，移動 P
+                            </div>
+                            <p>A、B 不動，只拖曳 <strong style="color:#4ECDC4">P</strong> 點。<br>
+                                <span style="color:#868e96; font-size:15px;">比值 ∠AOB ÷ ∠APB 有沒有變？</span></p>
+                            <div style="margin-top:12px; display:flex; align-items:baseline; gap:6px; justify-content:center;">
+                                <span id="pDragDisplay" style="font-size:36px; font-weight:800; font-family:'Urbanist',sans-serif; color:var(--primary); line-height:1;">0</span>
+                                <span style="font-size:15px; color:#868e96;">/ 3 次</span>
+                            </div>
+                        </div>
+
+                        <!-- 步驟 3：理解不變性（鎖定） -->
+                        <div class="wiz-card locked" id="wizA3">
+                            <div class="wiz-card-title">
+                                <span class="wiz-card-num">3</span>理解：為什麼不變？
+                            </div>
+
+                            <div class="obs-q">
+                                <div class="obs-q-label">① 改變 A/B（任意弧）時，∠AOB——</div>
+                                <div class="chip-group" id="chipGroupA1">
+                                    <div class="chip" onclick="selectChip('A1','changed')">跟著變 ✅</div>
+                                    <div class="chip" onclick="selectChip('A1','same')">沒有變 ❌</div>
+                                </div>
+                                <input type="hidden" id="obsA1" value="">
+                            </div>
+
+                            <div class="obs-q">
+                                <div class="obs-q-label">② 固定弧，移動 P 時，∠APB——</div>
+                                <div class="chip-group" id="chipGroupA2">
+                                    <div class="chip" onclick="selectChip('A2','changed')">跟著變 ✅</div>
+                                    <div class="chip" onclick="selectChip('A2','same')">沒有變 ❌</div>
+                                </div>
+                                <input type="hidden" id="obsA2" value="">
+                            </div>
+
+                            <div class="obs-q">
+                                <div class="obs-q-label">③ ∠APB 不變，是因為它永遠等於多少倍的 ∠AOB？</div>
+                                <input type="text" class="obs-input" id="obsA3"
+                                    placeholder="例如：½（即 0.5 倍）"
+                                    oninput="checkTabACompletion()">
+                            </div>
+
+                            <!-- 解釋框：回應 Tab A 的橋接 -->
+                            <div id="obsExplainBox" style="display:none; margin-top:10px; padding:10px 12px; background: linear-gradient(135deg, #f0fff4, #e6ffed); border-radius:10px; border-left:4px solid var(--success); font-size:14px; color:#2f9e44; line-height:1.7;">
+                                ✅ 正是！∠APB = ½ × ∠AOB，所以只要弧 AB 不動，∠APB 就不會變。這就是「圓周角不變性」的根本原因！
+                            </div>
+                        </div>
+
+                        <div class="hint" id="dragHint" style="display:none;"></div>
+                        <div id="exploreCounter" style="display:none;"></div>
+                        <span id="abDragCount" style="display:none;">0</span>
+                    </div>
+
+                    <div class="wizard-footer">
+                        <button class="btn btn-locked" id="conclusionBtnA" onclick="showConclusion('A')" disabled style="width:100%; font-size:17px; padding:13px;">
+                            🔒 查看結論
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab B 視覺順序 = tab1 (一般化驗證) — 但 tab2 先顯示 -->
+        <div id="tab2" class="tab-content active">
+            <div class="split-layout">
+                <div class="canvas-area">
+                    <!-- 特殊角選擇器 — 移到 canvas 頂部 -->
+                    <div class="angle-buttons">
+                        <button class="angle-btn" data-angle="60" onclick="setSpecialAngle(60)">60°</button>
+                        <button class="angle-btn" data-angle="90" onclick="setSpecialAngle(90)">90°</button>
+                        <button class="angle-btn" data-angle="120" onclick="setSpecialAngle(120)">120°</button>
+                        <button class="angle-btn active" data-angle="180" onclick="setSpecialAngle(180)">180° ⭐</button>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="canvasB"></canvas>
+                        <!-- 浮動數據徽章 -->
+                        <div class="data-float">
+                            <div class="data-float-row">
+                                <span class="data-float-label">圓心角 ∠AOB</span>
+                                <span class="data-float-value" id="centralAngleB" style="color:#FF6B6B;">—</span>
+                            </div>
+                            <div class="data-float-row">
+                                <span class="data-float-label">圓周角 ∠APB</span>
+                                <span class="data-float-value" id="inscribedAngleB" style="color:#20C997;">—</span>
+                            </div>
+                            <div class="data-float-row" style="padding-top:4px; border-top:1px solid #f1f3f5; margin-top:2px;">
+                                <span class="data-float-label">∠AOB ÷ ∠APB</span>
+                                <span class="data-float-value" id="ratioB" style="color:#764ba2;">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-primary" onclick="resetTabB()">重設</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="showTeacherHighlight()"
+                            style="font-size:12px; padding:4px 10px; background:white; border:1.5px solid #dee2e6; border-radius:8px; cursor:pointer;">教師亮點</button>
+                    </div>
+                </div>
+
+                <!-- 精靈右欄 — Tab A 特殊角出發 -->
+                <div class="wizard-area">
+                    <div class="wizard-header">
+                        <div class="wizard-title">🔎 A. 特殊角出發</div>
+                        <div style="font-size: 14px; color: #868e96; margin-top: 4px;">
+                            選一個你喜歡的角度，自由探索！
+                        </div>
+                        <div class="step-dots" style="justify-content:flex-start; gap:6px; padding:8px 0 0;">
+                            <div class="step-dot active" id="dotB1"></div>
+                            <div class="step-dot-label" style="font-size:13px; color:var(--secondary); font-weight:600;">眼睛觀察</div>
+                            <div style="width:18px; height:2px; background:#dee2e6; border-radius:1px;"></div>
+                            <div class="step-dot" id="dotB2"></div>
+                            <div class="step-dot-label" style="font-size:13px; color:#adb5bd;">數字驗證</div>
+                            <div style="width:18px; height:2px; background:#dee2e6; border-radius:1px;"></div>
+                            <div class="step-dot" id="dotB3"></div>
+                            <div class="step-dot-label" style="font-size:13px; color:#adb5bd;">形成猜想</div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-body">
+
+                        <!-- 說明：任意選角 -->
+                        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #f0f9ff 100%); border-radius: 12px; padding: 12px 14px; border-left: 4px solid #4ECDC4; font-size: 15px; color: #495057; line-height: 1.7;">
+                            👆 上方選任一角度（60°、90°、120°、180° 都可以），再拖曳 <strong style="color:#20C997">P</strong> 點探索看看。
+                        </div>
+
+                        <!-- 卡片 1：眼睛觀察 -->
+                        <div class="wiz-card active" id="stepB1">
+                            <div class="wiz-card-title">
+                                <span class="wiz-card-num">1</span>👁️ 眼睛觀察
+                            </div>
+                            <p>選好角度後，把 P 拖到 3 個不同位置。<br>
+                                <span style="color:#868e96; font-size:15px;">∠APB 有沒有改變？</span></p>
+                            <div class="chip-group" style="margin-top:12px;">
+                                <div class="chip" onclick="selectChipB('change')">會改變 ✅</div>
+                                <div class="chip" onclick="selectChipB('nochange')">不會改變 ❌</div>
+                            </div>
+                            <input type="hidden" id="bQ1hidden" value="">
+                        </div>
+
+                        <!-- 卡片 2：數字驗證（鎖定） -->
+                        <div class="wiz-card locked" id="stepB2">
+                            <div class="wiz-card-title">
+                                <span class="wiz-card-num">2</span>🔢 數字驗證
+                            </div>
+                            <p style="margin-bottom:10px;">查看左下角面板，記錄比值<br><strong>∠AOB ÷ ∠APB</strong>：</p>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:15px; color:#868e96; white-space:nowrap;">第 1 次</span>
+                                    <input type="text" id="bRatio1" class="obs-input" style="flex:1;" oninput="checkBStep2()" placeholder="比值 ≈ ?">
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:15px; color:#868e96; white-space:nowrap;">第 2 次</span>
+                                    <input type="text" id="bRatio2" class="obs-input" style="flex:1;" oninput="checkBStep2()" placeholder="比值 ≈ ?">
+                                </div>
+                            </div>
+                            <div style="margin-top:10px; font-size:14px; color:#868e96; background:#f8f9fa; border-radius:8px; padding:8px 10px;">
+                                💡 可以換個角度（如 90°）再試一次，比值一樣嗎？
+                            </div>
+                        </div>
+
+                        <!-- 卡片 3：形成猜想（鎖定） -->
+                        <div class="wiz-card locked" id="stepB3" style="border-color:#f39c12;">
+                            <div class="wiz-card-title">
+                                <span class="wiz-card-num" style="background:#f39c12;">3</span>💡 形成猜想
+                            </div>
+                            <p style="margin-bottom:10px;">不管選哪個角度，規律似乎都成立：</p>
+                            <div style="font-size:20px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; line-height:2.8;">
+                                <span>∠AOB ≈</span>
+                                <input type="text" id="guessInputB" class="obs-input" style="width:60px; display:inline-block; text-align:center;" oninput="checkBStep3()" placeholder="?">
+                                <span>× ∠APB</span>
+                            </div>
+                            <p style="font-size:13px; color:#868e96; margin-top:4px;">⚠️ 目前只是觀察規律，尚未數學證明</p>
+                        </div>
+
+                    </div><!-- /wizard-body -->
+
+                    <div class="wizard-footer">
+                        <div style="font-size:13px; color:#868e96; text-align:center; margin-bottom:8px;">
+                            完成後前往 <strong>B 一般化驗證</strong>，用任意弧驗證這個規律 →
+                        </div>
+                        <button class="btn btn-locked" id="conclusionBtnB" onclick="showConclusion('B')"
+                            style="width:100%; font-size:17px; padding:13px;" disabled>🔒 查看結論</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab C: 分類證明 -->
+        <div id="tab3" class="tab-content">
+            <div class="split-layout">
+                <div class="canvas-area">
+                    <div class="case-selector">
+                        <button class="case-btn active" data-case="2" onclick="selectCase(2)">圓心在圓周角的邊上</button>
+                        <button class="case-btn" data-case="1" onclick="selectCase(1)">圓心在圓周角內部</button>
+                        <button class="case-btn" data-case="3" onclick="selectCase(3)"
+                            style="background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); color: #333;">🏆
+                            挑戰題：圓心在圓周角外部</button>
+                    </div>
+                    <div class="canvas-container" style="position: relative;">
+                        <canvas id="canvasC"></canvas>
+                        <button class="btn btn-sm" onclick="resetTabC()" title="重新整理"
+                            style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 16px; display: flex; align-items: center; justify-content: center; z-index: 10; cursor: pointer; color: #555; transition: all 0.2s;">
+                            🔄
+                        </button>
+                    </div>
+                </div>
+                <div class="info-area">
+                    <!-- 教師有話要說 -->
+                    <div
+                        style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #ffc107; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 24px; margin-right: 8px;">👩‍🏫</span>
+                            <span style="font-weight: bold; color: #856404; font-size: 1.1em;">教師有話要說</span>
+                        </div>
+                        <div style="color: #856404; line-height: 1.8; font-size: 14px;">
+                            <p style="margin: 4px 0;">剛剛你透過拖動和觀察，</p>
+                            <p style="margin: 4px 0;">已經發現角度之間好像有固定的關係。</p>
+                            <p style="margin: 4px 0; font-weight: bold;">現在，你要試著用數學的方法，來解釋這件事。</p>
+                        </div>
+                    </div>
+
+                    <!-- C-0: 卡關階段 -->
+                    <div class="step-card active" id="stepC0">
+                        <div class="step-header">
+                            <div class="step-number" style="background: #e74c3c;">?</div>
+                            <div class="step-title">🤔 觀察與思考</div>
+                        </div>
+                        <div style="text-align: left; line-height: 1.8; padding: 10px 0;">
+                            <p style="margin: 8px 0; font-weight: bold;">問題：</p>
+                            <p style="margin: 4px 0;">圓心角 ∠AOB 和圓周角 ∠APB 之間，有什麼關係？</p>
+                            <p style="margin: 12px 0; color: #888; font-size: 13px;">💭 觀察圖形，你能發現什麼規律嗎？</p>
+                            <p style="margin: 12px 0; color: #888; font-size: 13px;">如果卡住了，試試畫一條輔助線...</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="startStepC1()" style="margin-top: 8px; width: 100%;">
+                            ✏️ 我需要一條輔助線
+                        </button>
+                    </div>
+
+                    <!-- C-1: 畫一條輔助線 -->
+                    <div class="step-card locked" id="stepC1" style="display: none;">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <div class="step-title">畫一條輔助線</div>
+                        </div>
+                        <div style="text-align: left; line-height: 1.8; padding: 10px 0;">
+                            <p style="margin: 4px 0;">要怎麼畫呢?</p>
+                            <div style="margin-top: 12px;">
+                                <button class="btn" onclick="selectAuxLineC('OP')" id="btnAuxOP"
+                                    style="width: 100%; margin-bottom: 8px; background: #f8f9fa; border: 2px solid #dee2e6; color: #495057;">
+                                    連接 O 和 P（圓心到圓周角頂點）
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- C-2: 等腰結構 -->
+                    <div class="step-card locked" id="stepC2" style="display: none;">
+                        <div class="step-header">
+                            <div class="step-number">2</div>
+                            <div class="step-title">發現結構 <span class="step-badge badge-step2">＝</span></div>
+                        </div>
+                        <div style="text-align: left; line-height: 1.8; padding: 10px 0;">
+                            <p style="margin: 4px 0; font-weight: bold;">🔍 觀察 △AOP 和 △BOP：</p>
+                            <p style="margin: 8px 0; color: #888;">提示：OA, OB, OP 都是什麼？</p>
+                            <div id="c2HintArea"
+                                style="display: none; margin-top: 12px; padding: 10px; background: #fff3cd; border-radius: 8px;">
+                                <p style="margin: 2px 0; display: flex; align-items: center; flex-wrap: nowrap;">
+                                    <span>OA = OP = OB = 圓的</span>
+                                    <input type="text" id="c2Input1" class="inline-input"
+                                        style="width: 80px; margin: 0 4px;" oninput="checkC2Inputs()">
+                                </p>
+                                <p style="margin: 6px 0; display: flex; align-items: center; flex-wrap: nowrap;">
+                                    <span>所以 △AOP 和 △BOP 都是</span>
+                                    <input type="text" id="c2Input2" class="inline-input"
+                                        style="width: 100px; margin: 0 4px;" oninput="checkC2Inputs()">
+                                </p>
+                            </div>
+                            <button class="btn" onclick="showC2Hint()" id="btnC2Hint"
+                                style="margin-top: 10px; width: 100%; background: #fff3cd; border: 1px solid #ffc107; color: #856404;">
+                                💡 看提示
+                            </button>
+                        </div>
+                        <div id="c2AngleArea" style="display: none; margin-top: 12px;">
+                            <p style="margin: 4px 0; font-weight: bold;">等腰三角形的性質：</p>
+                            <div class="checkbox-item" style="margin: 8px 0;">
+                                <input type="checkbox" id="checkC2a" onchange="checkC2Selection()">
+                                <label for="checkC2a">∠OAP = ∠OPA（底角相等）</label>
+                            </div>
+                            <div class="checkbox-item" style="margin: 8px 0;">
+                                <input type="checkbox" id="checkC2b" onchange="checkC2Selection()">
+                                <label for="checkC2b">∠OBP = ∠OPB（底角相等）</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- C-3: 視覺拼角 + 外角定理 -->
+                    <div class="step-card locked" id="stepC3" style="display: none;">
+                        <div class="step-header">
+                            <div class="step-number">3</div>
+                            <div class="step-title">角度關係 <span class="step-badge badge-step3-1">■</span></div>
+                        </div>
+                        <div style="text-align: left; line-height: 1.8; padding: 10px 0;">
+                            <p style="margin: 4px 0; font-weight: bold;">🧩 觀察角度如何「拼」在一起：</p>
+                            <p style="margin: 8px 0; color: #888;">看圖上的弧線，∠AOB 是由哪些角組成的？</p>
+
+                            <!-- 填空題 第一層 -->
+                            <div style="margin-top: 12px; padding: 12px; background: #e8f4f8; border-radius: 8px;">
+                                <p
+                                    style="margin: 4px 0; display: flex; align-items: center; flex-wrap: nowrap; font-weight: bold;">
+                                    <span style="color: #e74c3c;">∠AOB</span>
+                                    <span style="margin: 0 6px;">=</span>
+                                    <span style="color: #0077b6;">∠</span>
+                                    <input type="text" id="c3Input1" class="inline-input"
+                                        style="width: 55px; margin: 0 2px; text-align: center;"
+                                        oninput="checkC3Inputs()" placeholder="___">
+                                    <span style="margin: 0 4px;">+</span>
+                                    <span style="color: #0077b6;">∠</span>
+                                    <input type="text" id="c3Input2" class="inline-input"
+                                        style="width: 55px; margin: 0 2px; text-align: center;"
+                                        oninput="checkC3Inputs()" placeholder="___">
+                                </p>
+
+                                <!-- 第二層：第一層正確後出現 -->
+                                <div id="c3Row2" style="display: none; margin-top: 8px;">
+                                    <p
+                                        style="margin: 4px 0; display: flex; align-items: center; flex-wrap: nowrap; font-weight: bold;">
+                                        <span style="width: 50px;"></span>
+                                        <span style="margin: 0 6px;">=</span>
+                                        <span style="margin: 0 2px;">2</span>
+                                        <span style="color: #0077b6;">∠</span>
+                                        <input type="text" id="c3Input3" class="inline-input"
+                                            style="width: 55px; margin: 0 2px; text-align: center;"
+                                            oninput="checkC3Inputs2()" placeholder="___">
+                                        <span style="margin: 0 4px;">+</span>
+                                        <span style="margin: 0 2px;">2</span>
+                                        <span style="color: #0077b6;">∠</span>
+                                        <input type="text" id="c3Input4" class="inline-input"
+                                            style="width: 55px; margin: 0 2px; text-align: center;"
+                                            oninput="checkC3Inputs2()" placeholder="___">
+                                    </p>
+                                </div>
+
+                                <!-- 第三層：第二層正確後出現 -->
+                                <div id="c3Row3" style="display: none; margin-top: 8px;">
+                                    <p
+                                        style="margin: 4px 0; display: flex; align-items: center; flex-wrap: nowrap; font-weight: bold;">
+                                        <span style="width: 50px;"></span>
+                                        <span style="margin: 0 6px;">=</span>
+                                        <span style="margin: 0 2px;">2</span>
+                                        <span style="color: #0077b6;">∠</span>
+                                        <input type="text" id="c3Input5" class="inline-input"
+                                            style="width: 55px; margin: 0 2px; text-align: center;"
+                                            oninput="checkC3Inputs3()" placeholder="___">
+                                    </p>
+                                </div>
+
+                                <!-- 第四層: 情況2專用 - 第三層正確後出現 -->
+                                <div id="c3Row4Case2" style="display: none; margin-top: 8px;">
+                                    <p
+                                        style="margin: 4px 0; display: flex; align-items: center; flex-wrap: nowrap; font-weight: bold;">
+                                        <span style="width: 50px;"></span>
+                                        <span style="margin: 0 6px;">=</span>
+                                        <span style="color: #e74c3c;">2∠APB = 180°</span>
+                                        <span style="margin-left: 8px; color: #888;">(平角)</span>
+                                    </p>
+                                    <p
+                                        style="margin: 8px 0 4px 56px; font-weight: bold; color: #28a745; font-size: 1.1em;">
+                                        ∴ ∠APB = 90°
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 情況3專用證明區塊 -->
+                            <div id="c3Case3Proof"
+                                style="display: none; margin-top: 12px; padding: 12px; background: #fff8e8; border-radius: 8px; border-left: 3px solid #f39c12;">
+                                <p style="margin: 0 0 10px 0; font-weight: bold; color: #d35400;">📐 情況3：使用外角定理（減法）</p>
+
+                                <!-- 第一行: ∠DOB = ∠OPB + ∠OBP = 2∠OPB -->
+                                <p
+                                    style="margin: 6px 0; display: flex; align-items: center; flex-wrap: wrap; font-weight: bold;">
+                                    <span style="color: #e74c3c;">∠DOB</span>
+                                    <span style="margin: 0 4px;">=</span>
+                                    <span style="color: #0077b6;">∠</span>
+                                    <input type="text" id="c3Case3In1" class="inline-input"
+                                        style="width: 50px; margin: 0 2px; text-align: center;"
+                                        oninput="checkC3Case3Row1()" placeholder="___">
+                                    <span style="margin: 0 2px;">+</span>
+                                    <span style="color: #0077b6;">∠</span>
+                                    <input type="text" id="c3Case3In2" class="inline-input"
+                                        style="width: 50px; margin: 0 2px; text-align: center;"
+                                        oninput="checkC3Case3Row1()" placeholder="___">
+                                    <span style="margin: 0 2px;">=</span>
+                                    <span style="margin: 0 2px;">2</span>
+                                    <span style="color: #0077b6;">∠</span>
+                                    <input type="text" id="c3Case3In3" class="inline-input"
+                                        style="width: 50px; margin: 0 2px; text-align: center;"
+                                        oninput="checkC3Case3Row1()" placeholder="___">
+                                </p>
+
+                                <!-- 第二行: ∠DOA = ∠OPA + ∠OAP = 2∠OPA -->
+                                <div id="c3Case3Row2" style="display: none;">
+                                    <p
+                                        style="margin: 6px 0; display: flex; align-items: center; flex-wrap: wrap; font-weight: bold;">
+                                        <span style="color: #e74c3c;">∠DOA</span>
+                                        <span style="margin: 0 4px;">=</span>
+                                        <span style="color: #0077b6;">∠</span>
+                                        <input type="text" id="c3Case3In4" class="inline-input"
+                                            style="width: 50px; margin: 0 2px; text-align: center;"
+                                            oninput="checkC3Case3Row2()" placeholder="___">
+                                        <span style="margin: 0 2px;">+</span>
+                                        <span style="color: #0077b6;">∠</span>
+                                        <input type="text" id="c3Case3In5" class="inline-input"
+                                            style="width: 50px; margin: 0 2px; text-align: center;"
+                                            oninput="checkC3Case3Row2()" placeholder="___">
+                                        <span style="margin: 0 2px;">=</span>
+                                        <span style="margin: 0 2px;">2</span>
+                                        <span style="color: #0077b6;">∠</span>
+                                        <input type="text" id="c3Case3In6" class="inline-input"
+                                            style="width: 50px; margin: 0 2px; text-align: center;"
+                                            oninput="checkC3Case3Row2()" placeholder="___">
+                                    </p>
+                                </div>
+
+                                <!-- 第三行: ∠AOB = ∠DOB - ∠DOA -->
+                                <div id="c3Case3Row3" style="display: none;">
+                                    <p
+                                        style="margin: 10px 0 6px 0; display: flex; align-items: center; flex-wrap: wrap; font-weight: bold;">
+                                        <span style="color: #e74c3c;">∠AOB</span>
+                                        <span style="margin: 0 4px;">=</span>
+                                        <span style="color: #0077b6;">∠</span>
+                                        <input type="text" id="c3Case3In7" class="inline-input"
+                                            style="width: 50px; margin: 0 2px; text-align: center;"
+                                            oninput="checkC3Case3Row3()" placeholder="___">
+                                        <span style="margin: 0 4px; color: #e74c3c; font-size: 1.2em;">−</span>
+                                        <span style="color: #0077b6;">∠</span>
+                                        <input type="text" id="c3Case3In8" class="inline-input"
+                                            style="width: 50px; margin: 0 2px; text-align: center;"
+                                            oninput="checkC3Case3Row3()" placeholder="___">
+                                    </p>
+                                </div>
+
+                                <!-- 第四行: = 2∠OPB - 2∠OPA = 2∠APB -->
+                                <div id="c3Case3Row4" style="display: none;">
+                                    <p
+                                        style="margin: 6px 0 6px 56px; display: flex; align-items: center; flex-wrap: wrap; font-weight: bold;">
+                                        <span style="margin: 0 4px;">=</span>
+                                        <span>2∠OPB − 2∠OPA</span>
+                                    </p>
+                                    <p
+                                        style="margin: 6px 0 6px 56px; display: flex; align-items: center; flex-wrap: wrap; font-weight: bold; color: #28a745; font-size: 1.1em;">
+                                        <span style="margin: 0 4px;">=</span>
+                                        <span>2∠APB</span>
+                                        <span style="margin-left: 10px;">✓</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 答案正確後顯示 -->
+                            <div id="c3TheoremArea" style="display: none; margin-top: 12px;">
+                                <p
+                                    style="margin: 4px 0; padding: 10px; background: #ffe0e0; border-radius: 8px; text-align: center;">
+                                    📐 這就是<strong style="color: #e74c3c;">「三角形外角定理」</strong>！
+                                </p>
+                                <button class="btn btn-success" onclick="completeC3()"
+                                    style="margin-top: 10px; width: 100%;">
+                                    ✓ 我理解了！
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- C-4: 結論 + 教師亮點 -->
+                    <div class="step-card locked" id="stepC4" style="display: none;">
+                        <div class="step-header">
+                            <div class="step-number" style="background: #2ecc71;">✓</div>
+                            <div class="step-title">🎯 發現結論</div>
+                        </div>
+                        <div style="text-align: left; line-height: 1.8; padding: 10px 0;">
+                            <p style="margin: 4px 0;">代入等腰三角形的等角：</p>
+                            <div style="padding: 10px; background: #f0fff0; border-radius: 8px; margin: 10px 0;">
+                                <p style="margin: 2px 0;">∠AOB = (∠OAP + ∠OPA) + (∠OBP + ∠OPB)</p>
+                                <p style="margin: 2px 0; padding-left: 40px;">= 2∠OPA + 2∠OPB</p>
+                                <p style="margin: 2px 0; padding-left: 40px;">= 2(∠OPA + ∠OPB)</p>
+                                <p
+                                    style="margin: 8px 0; padding-left: 40px; font-size: 18px; font-weight: bold; color: #2ecc71;">
+                                    = 2 × ∠APB</p>
+                            </div>
+                            <div
+                                style="padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; text-align: center; color: white; margin: 15px 0;">
+                                <p style="margin: 0; font-size: 16px; font-weight: bold;">📐 圓心角 = 2 × 圓周角</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- C-5: 一般化公式歸納（改動 I） -->
+                    <div class="step-card locked" id="stepC5" style="display: none;">
+                        <div class="step-header">
+                            <div class="step-number" style="background: #FF6B6B;">★</div>
+                            <div class="step-title">🌐 一般化：永遠成立嗎？</div>
+                        </div>
+                        <div style="text-align: left; line-height: 1.8; padding: 10px 0;">
+                            <p style="margin: 4px 0; font-weight: bold; color: #495057;">
+                                這個關係只有在你選的這個特殊角才成立嗎？
+                            </p>
+                            <div style="background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px; padding: 12px; margin: 10px 0;">
+                                <p style="margin: 0; font-size: 18px; color: #856404;">
+                                    💡 回到 <strong>A 特殊角</strong>，把 A、B 拖到不同位置，再移動 P，<br>
+                                    看看比值 ∠AOB ÷ ∠APB 是否還是 2？
+                                </p>
+                                <button class="btn btn-secondary" onclick="switchTab('tab1')"
+                                    style="margin-top: 8px; width: 100%; font-size: 16px;">
+                                    → 前往 B 一般化驗證
+                                </button>
+                            </div>
+                            <div style="border: 2px solid #2ecc71; border-radius: 10px; padding: 14px; margin: 14px 0; background: #f0fff4;">
+                                <p style="margin: 0 0 6px 0; font-weight: bold; color: #2ecc71; font-size: 18px; text-align: center;">
+                                    圓周角定理（一般化）
+                                </p>
+                                <p style="margin: 4px 0; font-size: 17px; color: #2d3436; line-height: 1.7;">
+                                    在同一個圓中，對同一條弧 AB，<br>
+                                    圓心角 ∠AOB = 2 × 圓周角 ∠APB<br>
+                                    <span style="font-size: 15px; color: #636e72;">不論 P 點在優弧上哪個位置，永遠成立。</span>
+                                </p>
+                            </div>
+                            <p style="margin: 10px 0 4px 0; font-size: 19px; color: #495057;">
+                                用數學語言寫下：<br>
+                                ∠AOB = <input type="text" id="generalFormInput" class="inline-input"
+                                    style="width: 50px;" oninput="checkGeneralForm()" placeholder="?"> × ∠APB
+                            </p>
+                            <div id="generalFormFeedback" style="display:none; margin-top:8px; padding:8px 12px; border-radius:8px; font-size:17px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 結論浮動卡片 -->
+    <div class="conclusion-overlay" id="conclusionOverlay">
+        <div class="conclusion-card">
+            <div class="conclusion-header" id="conclusionHeader"></div>
+            <div class="conclusion-content" id="conclusionContent"></div>
+            <button class="btn btn-primary" onclick="closeConclusion()" style="width: 100%;">我理解了</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== 全域變數 =====
+        let state = {
+            tabA: {
+                dragCount: 0,
+                abDragCount: 0,   // 改動 C: 拖曳 A/B 次數
+                pDragCount: 0,    // 改動 C: 拖曳 P 次數
+                observationUnlocked: false,
+                conclusionUnlocked: false,
+                showHelpers: true
+            },
+            tabB: {
+                currentAngle: 180,
+                completedRatios: new Set(),
+                showHelpers: true
+            },
+            tabC: {
+                currentCase: 2,
+                proofStep: 0, // 新增進度狀態 0~3
+                step1Complete: false,
+                step2Complete: false,
+                step3Complete: false,
+                auxiliaryDrawn: false,
+                showHelpers: true
+            }
+        };
+
+        // Canvas 設定
+        const canvases = {
+            A: null,
+            B: null,
+            C: null
+        };
+
+        const contexts = {
+            A: null,
+            B: null,
+            C: null
+        };
+
+        // 幾何參數
+        const geometry = {
+            A: { center: null, radius: 0, pointA: null, pointB: null, pointP: null, dragging: false, draggingPoint: null },
+            B: { center: null, radius: 0, pointA: null, pointB: null, pointP: null, dragging: false, draggingPoint: null },
+            C: {
+                center: null, radius: 0, pointA: null, pointB: null, pointP: null, dragging: false, draggingPoint: null
+            }
+        };
+
+        // Tab C 專用樣式映射
+        const C_ANNOT_STYLE = {
+            auxiliary: { color: '#9b59b6', symbol: '···' },    // 紫色
+            isosceles: { color: '#e67e22', symbol: '＝' },     // 橘色
+            inscribed: { color: '#2ecc71', symbol: '●' },     // 綠色
+            central: { color: '#e74c3c', symbol: '■' }      // 紅色
+        };
+
+        // Tab C Badge 樣式
+        const tabCStyles = document.createElement('style');
+        tabCStyles.textContent = `
+            #tab3 .step-badge {
+                display: inline-block;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+                margin-left: 6px;
+                color: white;
+                min-width: 18px;
+                text-align: center;
+                opacity: 0.35; /* 預設半透明 */
+                transition: opacity 0.3s;
+            }
+            #tab3 .step-card.completed .step-badge,
+            #tab3 .step-card.active .step-badge {
+                opacity: 1; /* 完成或進行中則不透明 */
+            }
+            #tab3 .badge-step1 { background-color: ${C_ANNOT_STYLE.auxiliary.color}; }
+            #tab3 .badge-step2 { background-color: ${C_ANNOT_STYLE.isosceles.color}; }
+            #tab3 .badge-step3-1 { background-color: ${C_ANNOT_STYLE.central.color}; }
+            #tab3 .badge-step3-2 { background-color: ${C_ANNOT_STYLE.inscribed.color}; }
+        `;
+        document.head.appendChild(tabCStyles);
+
+        // 動畫幀
+        let animationFrameId = null;
+        let isDrawing = false;
+
+        // ===== 初始化 =====
+        window.addEventListener('DOMContentLoaded', function () {
+            // 初始化所有 tab
+            setTimeout(() => {
+                initTab('A');
+                initTab('B');
+                initTab('C');
+            }, 100);
+
+            // 頁籤切換
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+                    switchTab(tabId);
+                });
+            });
+
+            // Tab B 填空監聽
+            ['ratio60', 'ratio90', 'ratio120', 'ratio180'].forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    elem.addEventListener('input', checkTabBCompletion);
+                }
+            });
+        });
+
+        function initTab(tab) {
+            const canvas = document.getElementById(`canvas${tab}`);
+            if (!canvas) {
+                console.error(`Canvas${tab} not found!`);
+                return;
+            }
+
+            canvases[tab] = canvas;
+            contexts[tab] = canvas.getContext('2d');
+
+            resizeCanvas(tab);
+            window.addEventListener('resize', () => resizeCanvas(tab));
+
+            // 滑鼠/觸控事件
+            canvas.addEventListener('mousedown', (e) => handleStart(tab, e));
+            canvas.addEventListener('mousemove', (e) => handleMove(tab, e));
+            canvas.addEventListener('mouseup', () => handleEnd(tab));
+            canvas.addEventListener('mouseleave', () => handleEnd(tab));
+
+            canvas.addEventListener('touchstart', (e) => handleStart(tab, e.touches[0]));
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(tab, e.touches[0]); });
+            canvas.addEventListener('touchend', () => handleEnd(tab));
+
+            initGeometry(tab);
+            draw(tab);
+        }
+
+        function resizeCanvas(tab) {
+            const canvas = canvases[tab];
+            if (!canvas) {
+                console.error(`Canvas ${tab} not available for resize`);
+                return;
+            }
+
+            const container = canvas.parentElement;
+            if (!container) {
+                console.error(`Container for canvas ${tab} not found`);
+                return;
+            }
+
+            // 取容器的實際尺寸
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            // 使用較小的邊作為正方形邊長,並留出一些 padding
+            const size = Math.min(containerWidth, containerHeight) * 0.95;
+
+            console.log(`Resizing canvas ${tab}: container ${containerWidth}x${containerHeight}, canvas ${size}x${size}`);
+
+            if (size > 0) {
+                // 設定 canvas 實際像素尺寸(繪製解析度)
+                canvas.width = size;
+                canvas.height = size;
+
+                // 設定 canvas 顯示尺寸(CSS)
+                canvas.style.width = size + 'px';
+                canvas.style.height = size + 'px';
+
+                initGeometry(tab);
+                draw(tab);
+            }
+        }
+
+        function initGeometry(tab) {
+            const canvas = canvases[tab];
+
+            if (tab === 'B') {
+                // Revert to ScaleFactor approach for stability
+                // 0.47 scale = 0.94 diameter (Filling 94% of shortest side)
+                const sFactor = 0.47;
+                const r = Math.min(canvas.width, canvas.height) * sFactor;
+
+                // Center with slight vertical offset for top labels
+                geometry[tab].center = {
+                    x: canvas.width / 2,
+                    y: canvas.height * 0.53
+                };
+                geometry[tab].radius = r * 0.8; // 縮小 20%
+            } else {
+                // Tab A, C 維持原有邏輯 (基於 canvas WIDTH 屬性)
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const scaleFactor = 0.42;
+                const radius = Math.min(canvas.width, canvas.height) * scaleFactor;
+
+                geometry[tab].center = { x: centerX, y: centerY };
+                geometry[tab].radius = radius;
+            }
+
+            // 設定 A, B 點座標
+            if (tab === 'B') {
+                setPointsForAngle(state.tabB.currentAngle);
+            } else {
+                // Tab A, C: 固定弧 AB
+                const r = geometry[tab].radius;
+                const cx = geometry[tab].center.x;
+                const cy = geometry[tab].center.y;
+
+                // Tab C Case 2: 圓心在圓周角的邊上 (P 和 B 在直徑兩端)
+                if (tab === 'C' && state.tabC.currentCase === 2) {
+                    // A 在左上方
+                    geometry[tab].pointA = {
+                        x: cx - r * Math.cos(Math.PI / 4),
+                        y: cy - r * Math.sin(Math.PI / 4)
+                    };
+                    // B 在右下方
+                    geometry[tab].pointB = {
+                        x: cx + r * Math.cos(Math.PI / 4),
+                        y: cy + r * Math.sin(Math.PI / 4)
+                    };
+                    // P 在左方 (PB 通過圓心 O)
+                    geometry[tab].pointP = {
+                        x: cx - r,
+                        y: cy
+                    };
+                }
+                // Tab C Case 3: 圓心在圓周角外部
+                else if (tab === 'C' && state.tabC.currentCase === 3) {
+                    // A 在右上方 (約1-2點鐘方向)
+                    geometry[tab].pointA = {
+                        x: cx + r * Math.cos(Math.PI / 5),
+                        y: cy - r * Math.sin(Math.PI / 5)
+                    };
+                    // B 在右中下方 (約4點鐘方向)
+                    geometry[tab].pointB = {
+                        x: cx + r * Math.cos(Math.PI / 4),
+                        y: cy + r * Math.sin(Math.PI / 4)
+                    };
+                    // P 在左下方 (約7-8點鐘方向，圓心 O 在 ∠APB 外部)
+                    geometry[tab].pointP = {
+                        x: cx - r * Math.cos(Math.PI / 4),
+                        y: cy + r * Math.sin(Math.PI / 4)
+                    };
+                } else {
+                    // 原有邏輯 (Case 1 和 Tab A)
+                    geometry[tab].pointA = {
+                        x: cx - r * Math.cos(Math.PI / 6),
+                        y: cy - r * Math.sin(Math.PI / 6)
+                    };
+                    geometry[tab].pointB = {
+                        x: cx + r * Math.cos(Math.PI / 6),
+                        y: cy - r * Math.sin(Math.PI / 6)
+                    };
+                }
+            }
+
+            // P 點初始位置
+            if (tab === 'C' && (state.tabC.currentCase === 2 || state.tabC.currentCase === 3)) {
+                // Case 2 & 3: P 已在上面設定
+            } else {
+                // 正下方(在優弧上)
+                geometry[tab].pointP = {
+                    x: geometry[tab].center.x,
+                    y: geometry[tab].center.y + geometry[tab].radius
+                };
+            }
+        }
+
+        function setPointsForAngle(angleDeg) {
+            const angleRad = angleDeg * Math.PI / 180;
+            const cx = geometry.B.center.x;
+            const cy = geometry.B.center.y;
+            const r = geometry.B.radius;
+
+            // 以正上方為基準，左右各偏 angle/2
+            const base = -Math.PI / 2;
+            const t1 = base - angleRad / 2;
+            const t2 = base + angleRad / 2;
+
+            geometry.B.pointA = { x: cx + r * Math.cos(t1), y: cy + r * Math.sin(t1) };
+            geometry.B.pointB = { x: cx + r * Math.cos(t2), y: cy + r * Math.sin(t2) };
+
+            // P 點初始在下方（在弧上）
+            geometry.B.pointP = { x: cx, y: cy + r };
+        }
+
+        // ===== 繪圖函數 =====
+        function draw(tab) {
+            // Tab B 自救機制: 避免幾何未初始化
+            if (tab === 'B' && (!geometry.B || !geometry.B.radius || geometry.B.radius < 20 || isNaN(geometry.B.radius))) {
+                initGeometry('B');
+                setPointsForAngle(state.tabB.currentAngle || 180);
+            }
+
+            const ctx = contexts[tab];
+            const canvas = canvases[tab];
+            const g = geometry[tab];
+
+            if (!ctx || !canvas || !g || !g.center) {
+                console.error(`Cannot draw tab ${tab}: missing resources`);
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 繪製圓
+            ctx.beginPath();
+            ctx.arc(g.center.x, g.center.y, g.radius, 0, Math.PI * 2);
+
+            if (tab === 'B') {
+                // Tab B: 黑色線條，單層
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+            } else {
+                ctx.strokeStyle = '#dee2e6';
+                ctx.lineWidth = 3;
+            }
+            ctx.stroke();
+
+            // 繪製圓心角扇形
+            if (tab === 'B') {
+                // Tab B: 滿版扇形 (Full Radius), 仿照圖示的粉紅填色
+                drawVisibleAngleArc(ctx, g.center, g.pointA, g.pointB, g.radius, '#FFB6C1', 0.35);
+            } else {
+                drawAngleArc(ctx, g.center, g.pointA, g.pointB, g.radius, '#FF6B6B', 0.2);
+            }
+
+            // 繪製圓周角
+            if (tab === 'B') {
+                // Tab B: 青色填色
+                drawVisibleAngleArc(ctx, g.pointP, g.pointA, g.pointB, g.radius * 0.15, '#20C997', 0.3);
+            } else {
+                drawAngleArc(ctx, g.pointP, g.pointA, g.pointB, 60, '#4ECDC4', 0.3);
+            }
+
+            // 繪製半徑 OA, OB
+            const tabState = state[`tab${tab}`];
+            // Tab B: 不繪製明顯的半徑線條 (由扇形填色邊界呈現)，僅 A、C 繪製
+            if (tab !== 'B' && ((tabState && tabState.showHelpers !== false) || tab === 'C')) {
+                drawLine(ctx, g.center, g.pointA, '#adb5bd', 2);
+                drawLine(ctx, g.center, g.pointB, '#adb5bd', 2);
+            }
+
+            // 繪製弦 AB (Tab C 不繪製)
+            if (tab !== 'C') {
+                drawLine(ctx, g.pointA, g.pointB, '#495057', 3);
+            }
+
+            // 繪製圓周角的邊 (Tab B 使用青色, 稍微加粗)
+            if (tab === 'B') {
+                drawLine(ctx, g.pointP, g.pointA, '#20C997', 3);
+                drawLine(ctx, g.pointP, g.pointB, '#20C997', 3);
+            } else {
+                drawLine(ctx, g.pointP, g.pointA, '#4ECDC4', 3);
+                drawLine(ctx, g.pointP, g.pointB, '#4ECDC4', 3);
+            }
+
+
+
+            // Tab C: 分步驟標註渲染
+            if (tab === 'C') {
+                const step = state.tabC.proofStep;
+
+                // 計算 OP 延長線與圓的交點 D (在弧 AB 上，P 的對面)
+                const Ax = g.pointA.x, Ay = g.pointA.y;
+                const Bx = g.pointB.x, By = g.pointB.y;
+                const Ox = g.center.x, Oy = g.center.y;
+                const Px = g.pointP.x, Py = g.pointP.y;
+
+                // 方向向量 OP
+                const dx = Px - Ox;
+                const dy = Py - Oy;
+
+                // D 是 P 關於圓心 O 的對稱點 (在圓上，與 P 直徑對稱)
+                const pointD = {
+                    x: Ox - (Px - Ox),
+                    y: Oy - (Py - Oy)
+                };
+
+                // Proof Step >= 1: 畫 OP 輔助線並延長至圓上的 D 點
+                if (step >= 1) {
+                    // 畫 OP 虛線 (紫色)
+                    drawLine(ctx, g.center, g.pointP, C_ANNOT_STYLE.auxiliary.color, 4, [5, 5]);
+
+                    // 畫 OD 延長段 (從 O 到 D)
+                    drawLine(ctx, g.center, pointD, C_ANNOT_STYLE.auxiliary.color, 4, [5, 5]);
+
+                    // 標示 D 點
+                    drawPoint(ctx, pointD, 'D', C_ANNOT_STYLE.auxiliary.color, 5);
+
+                    // 標示文字 "OP" (約在中點偏移)
+                    const midX = (g.center.x + g.pointP.x) / 2;
+                    const midY = (g.center.y + g.pointP.y) / 2;
+                    ctx.save();
+                    ctx.fillStyle = C_ANNOT_STYLE.auxiliary.color;
+                    ctx.font = 'bold 14px Arial';
+                    // 偏移量調整，避免被線條擋住
+                    ctx.fillText('OP', midX - 25, midY - 5);
+                    ctx.restore();
+                }
+
+                // 檢查勾選狀態 (即時反饋) - 使用新的探究式階段 checkbox ID
+                const checkC2a = document.getElementById('checkC2a') && document.getElementById('checkC2a').checked;
+                const checkC2b = document.getElementById('checkC2b') && document.getElementById('checkC2b').checked;
+
+                // Step 2: 標記等腰 (橘色刻痕 + 紅/藍角度標記)
+                if (step >= 2 || checkC2a) {
+                    drawEqualMarks(ctx, g.center, g.pointA, g.center, g.pointP, C_ANNOT_STYLE.isosceles.color);
+                    drawDotAngle(ctx, g.pointA, g.center, g.pointP, '#FF6B6B');
+                    drawDotAngle(ctx, g.pointP, g.center, g.pointA, '#FF6B6B');
+                }
+                if (step >= 2 || checkC2b) {
+                    drawEqualMarks(ctx, g.center, g.pointB, g.center, g.pointP, C_ANNOT_STYLE.isosceles.color);
+                    drawDotAngle(ctx, g.pointB, g.center, g.pointP, '#4ECDC4');
+                    drawDotAngle(ctx, g.pointP, g.center, g.pointB, '#4ECDC4');
+                }
+
+                // Step 3: 外角定理提示 - 延長箭頭 + 紅色外角提示
+                if (step >= 3 && pointD) {
+                    // 畫延長箭頭 (從 D 向外延伸)
+                    const extLen = 20;
+                    const extDx = (Px - Ox) / Math.sqrt(dx * dx + dy * dy);
+                    const extDy = (Py - Oy) / Math.sqrt(dx * dx + dy * dy);
+                    const arrowEnd = { x: pointD.x + extDx * extLen, y: pointD.y + extDy * extLen };
+
+                    ctx.save();
+                    ctx.strokeStyle = C_ANNOT_STYLE.central.color;
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.moveTo(pointD.x, pointD.y);
+                    ctx.lineTo(arrowEnd.x, arrowEnd.y);
+                    ctx.stroke();
+
+                    // 箭頭頭部
+                    const arrowSize = 8;
+                    const angle = Math.atan2(extDy, extDx);
+                    ctx.beginPath();
+                    ctx.moveTo(arrowEnd.x, arrowEnd.y);
+                    ctx.lineTo(arrowEnd.x - arrowSize * Math.cos(angle - 0.4), arrowEnd.y - arrowSize * Math.sin(angle - 0.4));
+                    ctx.lineTo(arrowEnd.x - arrowSize * Math.cos(angle + 0.4), arrowEnd.y - arrowSize * Math.sin(angle + 0.4));
+                    ctx.closePath();
+                    ctx.fillStyle = C_ANNOT_STYLE.central.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Step 4: 單一弧線表示 ∠AOB (紅) 和 ∠APB (綠)
+                if (step >= 4) {
+                    // ∠AOB 紅色弧
+                    drawAngleArc(ctx, g.center, g.pointA, g.pointB, 45, C_ANNOT_STYLE.central.color, 0.4);
+
+                    // ∠APB 綠色弧
+                    drawAngleArc(ctx, g.pointP, g.pointA, g.pointB, 35, C_ANNOT_STYLE.inscribed.color, 0.4);
+                }
+            }
+
+            // Tab B: 180° 時顯示直角符號
+            if (tab === 'B' && state.tabB.currentAngle === 180) {
+                drawRightAngle(ctx, g.pointP, g.pointA, g.pointB, 20);
+            }
+
+            // 繪製點
+            if (tab === 'C') {
+                const ptSize = 6;
+                drawPoint(ctx, g.center, 'O', '#0077b6', ptSize);
+                drawPoint(ctx, g.pointA, 'A', '#FF6B6B', ptSize);
+                drawPoint(ctx, g.pointB, 'B', '#FF6B6B', ptSize);
+
+                // 計算 P 點標籤偏移 (向外)
+                const dx = g.pointP.x - g.center.x;
+                const dy = g.pointP.y - g.center.y;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const defaultOffset = 30; // 距離點中心的距離
+                const offX = (len > 0) ? (dx / len) * defaultOffset : 0;
+                const offY = (len > 0) ? (dy / len) * defaultOffset : 25;
+
+                drawPoint(ctx, g.pointP, 'P', '#20C997', ptSize, { x: offX, y: offY });
+            } else {
+                drawPoint(ctx, g.center, 'O', '#0077b6');
+                // 改動 C: Tab A 的 A/B 點顯示為可拖曳（加虛線外環）
+                if (tab === 'A') {
+                    // 在 A/B 點外圍畫一個提示環
+                    [g.pointA, g.pointB].forEach(pt => {
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y, 16, 0, Math.PI * 2);
+                        ctx.strokeStyle = 'rgba(255, 107, 107, 0.5)';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([4, 4]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    });
+                }
+                drawPoint(ctx, g.pointA, 'A', '#FF6B6B');
+                drawPoint(ctx, g.pointB, 'B', '#FF6B6B');
+                drawPoint(ctx, g.pointP, 'P', '#20C997');
+            }
+
+            // 更新數據顯示
+            updateData(tab);
+
+            // Tab B: 繪製角度標籤 (在 updateData 後確保確實計算，也可在此重算)
+            if (tab === 'B') {
+                const CA = calculateAngle(g.center, g.pointA, g.pointB);
+                const IA = calculateAngle(g.pointP, g.pointA, g.pointB);
+
+                // 圓心角標籤 (已隱藏)
+                // drawAngleLabel(ctx, g.center, g.pointA, g.pointB, `∠AOB = ${CA.toFixed(0)}°`, '#FF6B6B', 40);
+
+                // 圓周角標籤 (已隱藏)
+                // drawAngleLabel(ctx, g.pointP, g.pointA, g.pointB, `∠APB = ${IA.toFixed(0)}°`, '#4ECDC4', 70);
+            }
+        }
+
+        function drawLine(ctx, p1, p2, color, width, dash = []) {
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.setLineDash(dash);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawPoint(ctx, point, label, color, radius = 10, textOffset = { x: 0, y: -18 }) {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+
+            // 邊界夾持：確保標籤不被 canvas 邊緣裁切
+            const margin = 16;
+            const rawX = point.x + textOffset.x;
+            const rawY = point.y + textOffset.y;
+            const labelX = Math.max(margin, Math.min(ctx.canvas.width - margin, rawX));
+            const labelY = Math.max(margin, Math.min(ctx.canvas.height - margin, rawY));
+            ctx.fillText(label, labelX, labelY);
+        }
+
+        function drawAngleArc(ctx, vertex, p1, p2, radius, color, alpha) {
+            const angle1 = Math.atan2(p1.y - vertex.y, p1.x - vertex.x);
+            const angle2 = Math.atan2(p2.y - vertex.y, p2.x - vertex.x);
+
+            ctx.beginPath();
+            ctx.moveTo(vertex.x, vertex.y);
+            ctx.arc(vertex.x, vertex.y, radius, angle1, angle2);
+            ctx.closePath();
+            ctx.fillStyle = color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+            ctx.fill();
+        }
+
+        function drawVisibleAngleArc(ctx, vertex, p1, p2, radius, color, alpha) {
+            let angle1 = Math.atan2(p1.y - vertex.y, p1.x - vertex.x);
+            let angle2 = Math.atan2(p2.y - vertex.y, p2.x - vertex.x);
+
+            // Normalize to minor arc
+            let diff = angle2 - angle1;
+            if (diff < 0) diff += 2 * Math.PI;
+            if (diff > Math.PI) {
+                const temp = angle1;
+                angle1 = angle2;
+                angle2 = temp;
+                if (angle2 < angle1) angle2 += 2 * Math.PI;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(vertex.x, vertex.y);
+            ctx.arc(vertex.x, vertex.y, radius, angle1, angle2);
+            ctx.closePath();
+            ctx.fillStyle = color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+            ctx.fill();
+
+            // Stroke arc
+            ctx.beginPath();
+            ctx.arc(vertex.x, vertex.y, radius, angle1, angle2);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawAngleLabel(ctx, vertex, p1, p2, text, color, offsetRadius) {
+            let vx = (p1.x - vertex.x) + (p2.x - vertex.x);
+            let vy = (p1.y - vertex.y) + (p2.y - vertex.y);
+            let len = Math.sqrt(vx * vx + vy * vy);
+
+            if (len < 1e-5) {
+                vx = 0; vy = -1;
+            } else {
+                vx /= len; vy /= len;
+            }
+
+            const lx = vertex.x + vx * offsetRadius;
+            const ly = vertex.y + vy * offsetRadius;
+
+            ctx.save();
+            ctx.font = "bold 14px Arial";
+            const metric = ctx.measureText(text);
+            const w = metric.width + 10;
+            const h = 24;
+
+            ctx.fillStyle = "rgba(255,255,255,0.9)";
+            ctx.shadowColor = "rgba(0,0,0,0.2)";
+            ctx.shadowBlur = 4;
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(lx - w / 2, ly - h / 2, w, h, 6);
+            } else {
+                ctx.rect(lx - w / 2, ly - h / 2, w, h);
+            }
+            ctx.fill();
+
+            ctx.fillStyle = color;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, lx, ly);
+            ctx.restore();
+        }
+
+        function drawRightAngle(ctx, vertex, p1, p2, size) {
+            const v1x = p1.x - vertex.x;
+            const v1y = p1.y - vertex.y;
+            const v2x = p2.x - vertex.x;
+            const v2y = p2.y - vertex.y;
+
+            const len1 = Math.sqrt(v1x * v1x + v1y * v1y);
+            const len2 = Math.sqrt(v2x * v2x + v2y * v2y);
+
+            const ux1 = v1x / len1 * size;
+            const uy1 = v1y / len1 * size;
+            const ux2 = v2x / len2 * size;
+            const uy2 = v2y / len2 * size;
+
+            ctx.beginPath();
+            ctx.moveTo(vertex.x + ux1, vertex.y + uy1);
+            ctx.lineTo(vertex.x + ux1 + ux2, vertex.y + uy1 + uy2);
+            ctx.lineTo(vertex.x + ux2, vertex.y + uy2);
+            ctx.strokeStyle = '#4ECDC4';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawEqualMarks(ctx, p1, p2, p3, p4, color = '#F39C12') {
+            // 在線段中點畫刻痕標記相等
+            const mid1 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+            const mid2 = { x: (p3.x + p4.x) / 2, y: (p3.y + p4.y) / 2 };
+
+            const drawMark = (mid, dx, dy) => {
+                const perpX = -dy;
+                const perpY = dx;
+                const len = Math.sqrt(perpX * perpX + perpY * perpY);
+                const ux = perpX / len * 8;
+                const uy = perpY / len * 8;
+
+                ctx.beginPath();
+                ctx.moveTo(mid.x - ux, mid.y - uy);
+                ctx.lineTo(mid.x + ux, mid.y + uy);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            };
+
+            drawMark(mid1, p2.x - p1.x, p2.y - p1.y);
+            drawMark(mid2, p4.x - p3.x, p4.y - p3.y);
+        }
+
+        // ===== 互動處理 =====
+        function handleStart(tab, e) {
+            const rect = canvases[tab].getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // 計算相對於 canvas 內部的座標
+            const canvas = canvases[tab];
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            const canvasX = x * scaleX;
+            const canvasY = y * scaleY;
+
+            // 改動 C: Tab A 允許拖曳 A、B、P 三個點
+            if (tab === 'A') {
+                const distA = distance({ x: canvasX, y: canvasY }, geometry[tab].pointA);
+                const distB = distance({ x: canvasX, y: canvasY }, geometry[tab].pointB);
+                const distP = distance({ x: canvasX, y: canvasY }, geometry[tab].pointP);
+                if (distA < 30) {
+                    geometry[tab].dragging = true;
+                    geometry[tab].draggingPoint = 'A';
+                } else if (distB < 30) {
+                    geometry[tab].dragging = true;
+                    geometry[tab].draggingPoint = 'B';
+                } else if (distP < 30) {
+                    geometry[tab].dragging = true;
+                    geometry[tab].draggingPoint = 'P';
+                }
+            } else {
+                const dist = distance({ x: canvasX, y: canvasY }, geometry[tab].pointP);
+                if (dist < 30) {  // 增加偵測範圍
+                    geometry[tab].dragging = true;
+                    geometry[tab].draggingPoint = 'P';
+                }
+            }
+        }
+
+        function handleMove(tab, e) {
+            if (!geometry[tab].dragging) return;
+
+            const rect = canvases[tab].getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // 計算相對於 canvas 內部的座標
+            const canvas = canvases[tab];
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            const canvasX = x * scaleX;
+            const canvasY = y * scaleY;
+
+            // 計算向量
+            const dx = canvasX - geometry[tab].center.x;
+            const dy = canvasY - geometry[tab].center.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist > 0) {
+                // 改動 C: Tab A 的 A/B 點也可沿圓移動
+                const draggingPoint = geometry[tab].draggingPoint || 'P';
+
+                let newPx = geometry[tab].center.x + (dx / dist) * geometry[tab].radius;
+                let newPy = geometry[tab].center.y + (dy / dist) * geometry[tab].radius;
+
+                if (tab === 'A' && draggingPoint === 'A') {
+                    geometry[tab].pointA = { x: newPx, y: newPy };
+                } else if (tab === 'A' && draggingPoint === 'B') {
+                    geometry[tab].pointB = { x: newPx, y: newPy };
+                } else {
+                    // Tab C Case 3: 限制 P 不能越過 OA 的延長線
+                    if (tab === 'C' && state.tabC.currentCase === 3) {
+                        const O = geometry[tab].center;
+                        const A = geometry[tab].pointA;
+                        const B = geometry[tab].pointB;
+
+                        const oaX = A.x - O.x;
+                        const oaY = A.y - O.y;
+
+                        const opX = newPx - O.x;
+                        const opY = newPy - O.y;
+
+                        const crossOA = oaX * opY - oaY * opX;
+
+                        const obX = B.x - O.x;
+                        const obY = B.y - O.y;
+
+                        const crossOA_B = oaX * obY - oaY * obX;
+
+                        if (crossOA * crossOA_B < 0) {
+                            const angleA = Math.atan2(A.y - O.y, A.x - O.x);
+                            const offset = crossOA_B > 0 ? 0.05 : -0.05;
+                            newPx = O.x + geometry[tab].radius * Math.cos(angleA + offset);
+                            newPy = O.y + geometry[tab].radius * Math.sin(angleA + offset);
+                        }
+                    }
+
+                    geometry[tab].pointP = { x: newPx, y: newPy };
+                }
+            }
+
+            // 使用 requestAnimationFrame 優化繪圖
+            if (!isDrawing) {
+                isDrawing = true;
+                animationFrameId = requestAnimationFrame(() => {
+                    draw(tab);
+                    isDrawing = false;
+                });
+            }
+        }
+
+        function handleEnd(tab) {
+            if (geometry[tab].dragging) {
+                const draggingPoint = geometry[tab].draggingPoint || 'P';
+                geometry[tab].dragging = false;
+                geometry[tab].draggingPoint = null;
+
+                if (tab === 'A') {
+                    if (draggingPoint === 'A' || draggingPoint === 'B') {
+                        state.tabA.abDragCount++;
+                        // 更新大數字顯示
+                        const dispEl = document.getElementById('abDragDisplay');
+                        if (dispEl) dispEl.textContent = state.tabA.abDragCount;
+                        // Step 1 完成後亮起 Step 2
+                        if (state.tabA.abDragCount >= 3) {
+                            const w2 = document.getElementById('wizA2');
+                            if (w2) { w2.classList.remove('locked'); w2.classList.add('active'); }
+                            // 更新步驟點
+                            const d1 = document.getElementById('dotA1'), d2 = document.getElementById('dotA2');
+                            const l1 = document.getElementById('dotA1Label'), l2 = document.getElementById('dotA2Label');
+                            if (d1) { d1.classList.remove('active'); d1.classList.add('done'); }
+                            if (d2) { d2.classList.add('active'); }
+                            if (l1) { l1.style.color = ''; l1.style.fontWeight = ''; }
+                            if (l2) { l2.style.color = 'var(--secondary)'; l2.style.fontWeight = '600'; }
+                        }
+                        // 更新進度條
+                        const prog = document.getElementById('progressA');
+                        if (prog) prog.style.width = Math.min((state.tabA.abDragCount / 3) * 33, 33) + '%';
+                    } else {
+                        state.tabA.pDragCount++;
+                        state.tabA.dragCount = state.tabA.pDragCount;
+                        // 更新大數字顯示
+                        const pDispEl = document.getElementById('pDragDisplay');
+                        if (pDispEl) pDispEl.textContent = state.tabA.pDragCount;
+                        // 進度條
+                        const prog = document.getElementById('progressA');
+                        if (prog) prog.style.width = Math.min(33 + (state.tabA.pDragCount / 3) * 33, 66) + '%';
+                    }
+
+                    // 兩個步驟都達標後解鎖觀察記錄
+                    const abOK = state.tabA.abDragCount >= 3;
+                    const pOK = state.tabA.pDragCount >= 3;
+                    if (abOK && pOK && !state.tabA.observationUnlocked) {
+                        state.tabA.observationUnlocked = true;
+                        const w3 = document.getElementById('wizA3');
+                        if (w3) { w3.classList.remove('locked'); w3.classList.add('active'); }
+                        // 更新步驟點
+                        const d2 = document.getElementById('dotA2'), d3 = document.getElementById('dotA3');
+                        const l2 = document.getElementById('dotA2Label'), l3 = document.getElementById('dotA3Label');
+                        if (d2) { d2.classList.remove('active'); d2.classList.add('done'); }
+                        if (d3) { d3.classList.add('active'); }
+                        if (l2) { l2.style.color = ''; l2.style.fontWeight = ''; }
+                        if (l3) { l3.style.color = 'var(--secondary)'; l3.style.fontWeight = '600'; }
+                        // 進度條
+                        const prog = document.getElementById('progressA');
+                        if (prog) prog.style.width = '66%';
+                        // 為 obs 輸入添加監聽
+                        const obsA3 = document.getElementById('obsA3');
+                        if (obsA3) obsA3.addEventListener('input', checkTabACompletion);
+                    }
+                }
+            }
+        }
+
+        function distance(p1, p2) {
+            return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+        }
+
+        // ===== 數據更新 =====
+        function updateData(tab) {
+            const g = geometry[tab];
+
+            // 計算圓心角
+            const centralAngle = calculateAngle(g.center, g.pointA, g.pointB);
+
+            // 計算圓周角
+            const inscribedAngle = calculateAngle(g.pointP, g.pointA, g.pointB);
+
+            // 計算比值
+            const ratio = centralAngle / inscribedAngle;
+
+            if (tab === 'A') {
+                document.getElementById('centralAngleA').textContent = centralAngle.toFixed(1) + '°';
+                document.getElementById('inscribedAngleA').textContent = inscribedAngle.toFixed(1) + '°';
+                document.getElementById('ratioA').textContent = ratio.toFixed(2);
+            } else if (tab === 'B') {
+                // 改動 F: 顯示 Tab B 即時數據
+                const caEl = document.getElementById('centralAngleB');
+                const iaEl = document.getElementById('inscribedAngleB');
+                const rEl = document.getElementById('ratioB');
+                if (caEl) caEl.textContent = centralAngle.toFixed(1) + '°';
+                if (iaEl) iaEl.textContent = inscribedAngle.toFixed(1) + '°';
+                if (rEl) rEl.textContent = isFinite(ratio) ? ratio.toFixed(2) : '—';
+            }
+        }
+
+        function calculateAngle(vertex, p1, p2) {
+            const v1 = { x: p1.x - vertex.x, y: p1.y - vertex.y };
+            const v2 = { x: p2.x - vertex.x, y: p2.y - vertex.y };
+
+            const dot = v1.x * v2.x + v1.y * v2.y;
+            const cross = v1.x * v2.y - v1.y * v2.x;
+
+            let angle = Math.atan2(cross, dot);
+            if (angle < 0) angle += Math.PI * 2;
+
+            return angle * 180 / Math.PI;
+        }
+
+        // ===== Tab A 功能 =====
+        function resetTabA() {
+            state.tabA.dragCount = 0;
+            state.tabA.abDragCount = 0;
+            state.tabA.pDragCount = 0;
+            state.tabA.observationUnlocked = false;
+            state.tabA.conclusionUnlocked = false;
+            // 重置精靈卡片
+            const w2 = document.getElementById('wizA2');
+            const w3 = document.getElementById('wizA3');
+            if (w2) { w2.className = 'wiz-card locked'; }
+            if (w3) { w3.className = 'wiz-card locked'; }
+            // 重置計數顯示
+            const ad = document.getElementById('abDragDisplay');
+            const pd = document.getElementById('pDragDisplay');
+            if (ad) ad.textContent = '0';
+            if (pd) pd.textContent = '0';
+            // 重置步驟點
+            ['dotA1','dotA2','dotA3'].forEach((id, i) => {
+                const d = document.getElementById(id);
+                const l = document.getElementById(id.replace('dot','dotA').replace('A1','A1Label').replace('A2','A2Label').replace('A3','A3Label'));
+                if (d) { d.className = 'step-dot' + (i===0?' active':''); }
+            });
+            const dotA1 = document.getElementById('dotA1'); if (dotA1) dotA1.className = 'step-dot active';
+            const dotA2 = document.getElementById('dotA2'); if (dotA2) dotA2.className = 'step-dot';
+            const dotA3 = document.getElementById('dotA3'); if (dotA3) dotA3.className = 'step-dot';
+            const l2 = document.getElementById('dotA2Label'); if (l2) { l2.style.color='#adb5bd'; l2.style.fontWeight=''; }
+            const l3 = document.getElementById('dotA3Label'); if (l3) { l3.style.color='#adb5bd'; l3.style.fontWeight=''; }
+            // 重置選片
+            document.querySelectorAll('#chipGroupA1 .chip, #chipGroupA2 .chip').forEach(c => c.classList.remove('selected-yes','selected-no','selected-neutral'));
+            // 重置 hidden inputs
+            ['obsA1','obsA2'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            const a3 = document.getElementById('obsA3'); if (a3) a3.value = '';
+            // 重置結論按鈕
+            const btn = document.getElementById('conclusionBtnA');
+            if (btn) { btn.className = 'btn btn-locked'; btn.disabled = true; btn.innerHTML = '🔒 查看結論'; }
+            // 重置進度條
+            const prog = document.getElementById('progressA'); if (prog) prog.style.width = '0%';
+            initGeometry('A');
+            draw('A');
+        }
+
+        function toggleHelpers(tab) {
+            const tabKey = `tab${tab}`;
+            if (state[tabKey]) {
+                state[tabKey].showHelpers = !state[tabKey].showHelpers;
+                draw(tab);
+            }
+        }
+
+        function checkTabACompletion() {
+            const obs1 = document.getElementById('obsA1') ? document.getElementById('obsA1').value.trim() : '';
+            const obs2 = document.getElementById('obsA2') ? document.getElementById('obsA2').value.trim() : '';
+            const obs3 = document.getElementById('obsA3') ? document.getElementById('obsA3').value.trim() : '';
+
+            // 顯示解釋框（填了 ½、0.5、1/2 或「半」時）
+            const explainBox = document.getElementById('obsExplainBox');
+            if (explainBox && obs3 && (obs3.includes('0.5') || obs3.includes('½') || obs3.includes('1/2') || obs3.includes('半'))) {
+                explainBox.style.display = 'block';
+            }
+
+            if (obs1 && obs2 && obs3) {
+                state.tabA.conclusionUnlocked = true;
+                const btn = document.getElementById('conclusionBtnA');
+                if (btn) {
+                    btn.classList.remove('btn-locked');
+                    btn.classList.add('btn-success');
+                    btn.disabled = false;
+                    btn.innerHTML = '✨ 查看結論';
+                }
+                const d3 = document.getElementById('dotA3');
+                const l3 = document.getElementById('dotA3Label');
+                if (d3) { d3.classList.remove('active'); d3.classList.add('done'); }
+                if (l3) { l3.style.color = 'var(--success)'; }
+                const prog = document.getElementById('progressA');
+                if (prog) prog.style.width = '100%';
+            }
+        }
+
+        // ===== Tab B 功能 =====
+        function setSpecialAngle(angle) {
+            state.tabB.currentAngle = angle;
+
+            // 更新按鈕狀態
+            document.querySelectorAll('.angle-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.angle) === angle) {
+                    btn.classList.add('active');
+                }
+            });
+
+            setPointsForAngle(angle);
+            draw('B');
+        }
+
+        function resetTabB() {
+            initGeometry('B');
+            draw('B');
+        }
+
+        function checkTabBCompletion() {
+            // 保留舊函數以防其他地方調用
+        }
+
+        // ===== 選片互動（Tab A 觀察題）=====
+        function selectChip(group, value) {
+            const chips = document.querySelectorAll(`#chipGroup${group} .chip`);
+            chips.forEach(c => c.classList.remove('selected-yes', 'selected-no', 'selected-neutral'));
+
+            const clicked = event.currentTarget || document.querySelector(`#chipGroup${group} .chip[onclick*="${value}"]`);
+            chips.forEach(c => {
+                if (c.getAttribute('onclick').includes(`'${value}'`)) {
+                    c.classList.add(value === 'changed' ? 'selected-yes' : 'selected-no');
+                }
+            });
+
+            // 寫入隱藏輸入
+            const hidden = document.getElementById(`obs${group.replace('A','A')}`);
+            if (hidden) hidden.value = value;
+
+            checkTabACompletion();
+        }
+
+        // ===== 選片互動（Tab B 步驟 1）=====
+        function selectChipB(value) {
+            const chips = document.querySelectorAll('#stepB1 .chip');
+            chips.forEach(c => c.classList.remove('selected-yes', 'selected-no'));
+            chips.forEach(c => {
+                if (c.getAttribute('onclick').includes(`'${value}'`)) {
+                    c.classList.add(value === 'nochange' ? 'selected-yes' : 'selected-no');
+                }
+            });
+            document.getElementById('bQ1hidden').value = value;
+            checkBStep1();
+        }
+
+        // 改動 F: Tab B 三步驟解鎖邏輯
+        function checkBStep1() {
+            const val = document.getElementById('bQ1hidden') ? document.getElementById('bQ1hidden').value : '';
+            const selected = val || document.querySelector('input[name="bQ1"]:checked');
+            if (selected) {
+                const step2 = document.getElementById('stepB2');
+                if (step2) {
+                    step2.classList.remove('locked');
+                    step2.style.opacity = '1';
+                    step2.style.pointerEvents = 'auto';
+                    // 更新步驟點
+                    const d1 = document.getElementById('dotB1');
+                    const d2 = document.getElementById('dotB2');
+                    if (d1) { d1.classList.remove('active'); d1.classList.add('done'); }
+                    if (d2) { d2.classList.add('active'); }
+                }
+            }
+        }
+
+        function checkBStep2() {
+            const r1 = document.getElementById('bRatio1');
+            const r2 = document.getElementById('bRatio2');
+            if (r1 && r2 && r1.value.trim() && r2.value.trim()) {
+                const step3 = document.getElementById('stepB3');
+                if (step3) {
+                    step3.classList.remove('locked');
+                    step3.style.opacity = '1';
+                    step3.style.pointerEvents = 'auto';
+                    const d2 = document.getElementById('dotB2');
+                    const d3 = document.getElementById('dotB3');
+                    if (d2) { d2.classList.remove('active'); d2.classList.add('done'); }
+                    if (d3) { d3.classList.add('active'); }
+                }
+            }
+        }
+
+        function checkBStep3() {
+            const guessEl = document.getElementById('guessInputB');
+            if (guessEl && guessEl.value.trim()) {
+                // 解鎖查看結論按鈕
+                const btn = document.getElementById('conclusionBtnB');
+                if (btn) {
+                    btn.classList.remove('btn-locked');
+                    btn.classList.add('btn-success');
+                    btn.disabled = false;
+                    btn.innerHTML = '✨ 查看結論';
+                }
+            }
+        }
+
+        // 改動 I: Tab C stepC5 一般化公式檢查
+        function checkGeneralForm() {
+            const inp = document.getElementById('generalFormInput');
+            const fb = document.getElementById('generalFormFeedback');
+            if (!inp || !fb) return;
+            const val = inp.value.trim();
+            if (val === '2') {
+                fb.style.display = 'block';
+                fb.style.background = '#d4edda';
+                fb.style.color = '#155724';
+                fb.innerHTML = '✅ 正確！∠AOB = 2 × ∠APB，圓周角定理完整建立！';
+                inp.style.borderColor = '#28a745';
+                inp.style.background = '#d4edda';
+            } else if (val.length > 0) {
+                fb.style.display = 'block';
+                fb.style.background = '#fff3cd';
+                fb.style.color = '#856404';
+                fb.innerHTML = '💡 提示：回顧前面的驗證，比值大約是多少？';
+                inp.style.borderColor = '#ffc107';
+                inp.style.background = '#fff';
+            }
+        }
+
+        // ===== Tab C 功能 (探究式四階段) =====
+        function selectCase(caseNum) {
+            console.log('selectCase called with:', caseNum);
+            state.tabC.currentCase = caseNum;
+            state.tabC.proofStep = 0;
+            resetTabC();
+            document.querySelectorAll('.case-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.case-btn[data-case="${caseNum}"]`).classList.add('active');
+            console.log('currentCase is now:', state.tabC.currentCase);
+        }
+
+        function resetTabC() {
+            state.tabC.proofStep = 0;
+            state.tabC.step1Complete = false;
+            state.tabC.step2Complete = false;
+            state.tabC.step3Complete = false;
+            state.tabC.auxiliaryDrawn = false;
+
+            // 重置所有階段卡片
+            const stepC0 = document.getElementById('stepC0');
+            const stepC1 = document.getElementById('stepC1');
+            const stepC2 = document.getElementById('stepC2');
+            const stepC3 = document.getElementById('stepC3');
+            const stepC4 = document.getElementById('stepC4');
+
+            if (stepC0) { stepC0.className = 'step-card active'; stepC0.style.display = 'block'; }
+            if (stepC1) { stepC1.className = 'step-card locked'; stepC1.style.display = 'none'; }
+            if (stepC2) { stepC2.className = 'step-card locked'; stepC2.style.display = 'none'; }
+            if (stepC3) { stepC3.className = 'step-card locked'; stepC3.style.display = 'none'; }
+            if (stepC4) { stepC4.className = 'step-card locked'; stepC4.style.display = 'none'; }
+
+            // 改動 I: 重置 stepC5
+            const stepC5 = document.getElementById('stepC5');
+            if (stepC5) { stepC5.className = 'step-card locked'; stepC5.style.display = 'none'; }
+            const genInput = document.getElementById('generalFormInput');
+            if (genInput) { genInput.value = ''; genInput.style.borderColor = ''; genInput.style.background = ''; }
+            const genFb = document.getElementById('generalFormFeedback');
+            if (genFb) genFb.style.display = 'none';
+
+            // 重置提示區域
+            const c2Hint = document.getElementById('c2HintArea');
+            const c2Angle = document.getElementById('c2AngleArea');
+            const c3Visual = document.getElementById('c3VisualArea');
+            const c3Theorem = document.getElementById('c3TheoremArea');
+            const btnC2 = document.getElementById('btnC2Hint');
+            const btnC3 = document.getElementById('btnC3Visual');
+
+            if (c2Hint) c2Hint.style.display = 'none';
+            if (c2Angle) c2Angle.style.display = 'none';
+            if (c3Visual) c3Visual.style.display = 'none';
+            if (c3Theorem) c3Theorem.style.display = 'none';
+            if (btnC2) btnC2.style.display = 'block';
+            if (btnC3) btnC3.style.display = 'block';
+
+            // 重置填空行
+            const c3Row2 = document.getElementById('c3Row2');
+            const c3Row3 = document.getElementById('c3Row3');
+            const c3Row4Case2 = document.getElementById('c3Row4Case2');
+            const c3Case3Proof = document.getElementById('c3Case3Proof');
+            const c3Case3Row2 = document.getElementById('c3Case3Row2');
+            const c3Case3Row3 = document.getElementById('c3Case3Row3');
+            const c3Case3Row4 = document.getElementById('c3Case3Row4');
+
+            if (c3Row2) c3Row2.style.display = 'none';
+            if (c3Row3) c3Row3.style.display = 'none';
+            if (c3Row4Case2) c3Row4Case2.style.display = 'none';
+            if (c3Case3Proof) c3Case3Proof.style.display = 'none';
+            if (c3Case3Row2) c3Case3Row2.style.display = 'none';
+            if (c3Case3Row3) c3Case3Row3.style.display = 'none';
+            if (c3Case3Row4) c3Case3Row4.style.display = 'none';
+
+            // 清除填空輸入框 (包含情況3的輸入框)
+            ['c3Input1', 'c3Input2', 'c3Input3', 'c3Input4', 'c3Input5', 'c2Input1', 'c2Input2',
+                'c3Case3In1', 'c3Case3In2', 'c3Case3In3', 'c3Case3In4', 'c3Case3In5', 'c3Case3In6',
+                'c3Case3In7', 'c3Case3In8'].forEach(id => {
+                    const inp = document.getElementById(id);
+                    if (inp) {
+                        inp.value = '';
+                        inp.style.borderColor = '#0077b6';
+                        inp.style.background = '#fff';
+                    }
+                });
+
+            // 清除 checkbox
+            document.querySelectorAll('#tab3 input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+            initGeometry('C');
+            draw('C');
+        }
+
+        // C-0 → C-1: 點擊「我需要一條輔助線」
+        function startStepC1() {
+            document.getElementById('stepC0').style.display = 'none';
+            document.getElementById('stepC1').style.display = 'block';
+            document.getElementById('stepC1').className = 'step-card active';
+        }
+
+        // C-1 → C-2: 選擇輔助線 OP
+        function selectAuxLineC(lineType) {
+            if (lineType === 'OP') {
+                state.tabC.auxiliaryDrawn = true;
+                state.tabC.step1Complete = true;
+                state.tabC.proofStep = 1;
+
+                document.getElementById('stepC1').className = 'step-card completed';
+                document.getElementById('stepC2').style.display = 'block';
+                document.getElementById('stepC2').className = 'step-card active';
+
+                document.getElementById('btnAuxOP').style.background = '#d4edda';
+                document.getElementById('btnAuxOP').style.borderColor = '#28a745';
+
+                draw('C');
+            }
+        }
+
+        // C-2: 顯示等腰提示 (填空區)
+        function showC2Hint() {
+            document.getElementById('c2HintArea').style.display = 'block';
+            document.getElementById('btnC2Hint').style.display = 'none';
+            // 角度區域等填空正確後再顯示
+        }
+
+        // C-2: 檢查填空輸入是否正確
+        function checkC2Inputs() {
+            const input1 = document.getElementById('c2Input1');
+            const input2 = document.getElementById('c2Input2');
+            if (!input1 || !input2) return;
+
+            const val1 = input1.value.trim();
+            const val2 = input2.value.trim();
+
+            // 驗證答案 (放寬接受條件)
+            const ans1Correct = (val1 === '半徑' || val1 === 'r' || val1 === 'R' || val1 === 'radius' || val1.includes('半徑'));
+            const ans2Correct = (val2 === '等腰三角形' || val2 === '等腰' || val2.includes('等腰'));
+
+            // 視覺反饋
+            if (val1.length > 0) {
+                input1.style.borderColor = ans1Correct ? '#28a745' : '#dc3545';
+                input1.style.background = ans1Correct ? '#d4edda' : '#fff';
+            } else {
+                input1.style.borderColor = '#ffc107';
+                input1.style.background = '#fff';
+            }
+
+            if (val2.length > 0) {
+                input2.style.borderColor = ans2Correct ? '#28a745' : '#dc3545';
+                input2.style.background = ans2Correct ? '#d4edda' : '#fff';
+            } else {
+                input2.style.borderColor = '#ffc107';
+                input2.style.background = '#fff';
+            }
+
+            // 兩個都正確時顯示角度區域和成功訊息
+            if (ans1Correct && ans2Correct) {
+                const angleArea = document.getElementById('c2AngleArea');
+                if (angleArea) {
+                    angleArea.style.display = 'block';
+                }
+                state.tabC.proofStep = Math.max(state.tabC.proofStep, 2);
+                draw('C');
+            }
+        }
+
+        // C-2: 檢查角度 checkbox
+        function checkC2Selection() {
+            const a = document.getElementById('checkC2a').checked;
+            const b = document.getElementById('checkC2b').checked;
+
+            draw('C');
+
+            if (a && b) {
+                state.tabC.step2Complete = true;
+                document.getElementById('stepC2').className = 'step-card completed';
+                document.getElementById('stepC3').style.display = 'block';
+                document.getElementById('stepC3').className = 'step-card active';
+
+                // 情況3: 顯示專屬證明區塊，隱藏通用區塊
+                if (state.tabC.currentCase === 3) {
+                    document.getElementById('c3Case3Proof').style.display = 'block';
+                    // 隱藏通用的填空區塊
+                    const regularProof = document.querySelector('#stepC3 > div > div:nth-child(3)');
+                    if (regularProof && regularProof.style) {
+                        regularProof.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        // C-3: 檢查第一層填空 (∠AOB = ∠AOP + ∠BOP 或 ∠AOD + ∠BOD)
+        function checkC3Inputs() {
+            const input1 = document.getElementById('c3Input1');
+            const input2 = document.getElementById('c3Input2');
+            if (!input1 || !input2) return;
+
+            let val1 = input1.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+            let val2 = input2.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+
+            // 有效答案: AOP, POA, AOD, DOA, BOP, POB, BOD, DOB
+            const aopGroup = ['AOP', 'POA', 'AOD', 'DOA'];
+            const bopGroup = ['BOP', 'POB', 'BOD', 'DOB'];
+            const validAngles = [...aopGroup, ...bopGroup];
+
+            const isAOP = aopGroup.includes(val1);
+            const isBOP = bopGroup.includes(val1);
+            const isAOP2 = aopGroup.includes(val2);
+            const isBOP2 = bopGroup.includes(val2);
+
+            const ans1Valid = validAngles.includes(val1);
+            const ans2Valid = validAngles.includes(val2);
+            const bothCorrect = ((isAOP && isBOP2) || (isBOP && isAOP2));
+
+            // 視覺反饋
+            if (val1.length > 0) {
+                input1.style.borderColor = ans1Valid ? '#28a745' : '#dc3545';
+                input1.style.background = ans1Valid ? '#d4edda' : '#fff';
+            } else {
+                input1.style.borderColor = '#0077b6';
+                input1.style.background = '#fff';
+            }
+
+            if (val2.length > 0) {
+                input2.style.borderColor = ans2Valid ? '#28a745' : '#dc3545';
+                input2.style.background = ans2Valid ? '#d4edda' : '#fff';
+            } else {
+                input2.style.borderColor = '#0077b6';
+                input2.style.background = '#fff';
+            }
+
+            // 第一層正確時顯示第二層
+            if (bothCorrect) {
+                const row2 = document.getElementById('c3Row2');
+                if (row2) row2.style.display = 'block';
+            }
+        }
+
+        // C-3: 檢查第二層填空 (= 2∠OPA + 2∠OPB)
+        function checkC3Inputs2() {
+            const input3 = document.getElementById('c3Input3');
+            const input4 = document.getElementById('c3Input4');
+            if (!input3 || !input4) return;
+
+            let val3 = input3.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+            let val4 = input4.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+
+            // 有效答案: OPA, APO, OPB, BPO
+            const opaGroup = ['OPA', 'APO', 'PAO', 'OAP'];
+            const opbGroup = ['OPB', 'BPO', 'PBO', 'OBP'];
+            const validAngles = [...opaGroup, ...opbGroup];
+
+            const isOPA = opaGroup.includes(val3);
+            const isOPB = opbGroup.includes(val3);
+            const isOPA2 = opaGroup.includes(val4);
+            const isOPB2 = opbGroup.includes(val4);
+
+            const ans3Valid = validAngles.includes(val3);
+            const ans4Valid = validAngles.includes(val4);
+            const bothCorrect = ((isOPA && isOPB2) || (isOPB && isOPA2));
+
+            // 視覺反饋
+            if (val3.length > 0) {
+                input3.style.borderColor = ans3Valid ? '#28a745' : '#dc3545';
+                input3.style.background = ans3Valid ? '#d4edda' : '#fff';
+            } else {
+                input3.style.borderColor = '#0077b6';
+                input3.style.background = '#fff';
+            }
+
+            if (val4.length > 0) {
+                input4.style.borderColor = ans4Valid ? '#28a745' : '#dc3545';
+                input4.style.background = ans4Valid ? '#d4edda' : '#fff';
+            } else {
+                input4.style.borderColor = '#0077b6';
+                input4.style.background = '#fff';
+            }
+
+            // 第二層正確時顯示第三層
+            if (bothCorrect) {
+                const row3 = document.getElementById('c3Row3');
+                if (row3) row3.style.display = 'block';
+            }
+        }
+
+        // C-3: 檢查第三層填空 (= 2∠APB)
+        function checkC3Inputs3() {
+            const input5 = document.getElementById('c3Input5');
+            if (!input5) return;
+
+            let val5 = input5.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+
+            // 有效答案: APB, BPA
+            const validAngles = ['APB', 'BPA'];
+            const isCorrect = validAngles.includes(val5);
+
+            // 視覺反饋
+            if (val5.length > 0) {
+                input5.style.borderColor = isCorrect ? '#28a745' : '#dc3545';
+                input5.style.background = isCorrect ? '#d4edda' : '#fff';
+            } else {
+                input5.style.borderColor = '#0077b6';
+                input5.style.background = '#fff';
+            }
+
+            // 答案正確時
+            if (isCorrect) {
+                // 情況2: 顯示特殊結論 (2∠APB = 180°, ∠APB = 90°)
+                if (state.tabC.currentCase === 2) {
+                    const row4 = document.getElementById('c3Row4Case2');
+                    if (row4) row4.style.display = 'block';
+                }
+
+                document.getElementById('c3TheoremArea').style.display = 'block';
+                state.tabC.proofStep = Math.max(state.tabC.proofStep, 3);
+                draw('C');
+            }
+        }
+
+        // 保留舊函數 (已不使用)
+        function showC3Visual() {
+            checkC3Inputs();
+        }
+
+        // ===== 情況3專用驗證函數 =====
+        // 第一行: ∠DOB = ∠OPB + ∠OBP = 2∠OPB
+        function checkC3Case3Row1() {
+            const in1 = document.getElementById('c3Case3In1');
+            const in2 = document.getElementById('c3Case3In2');
+            const in3 = document.getElementById('c3Case3In3');
+            if (!in1 || !in2 || !in3) return;
+
+            let val1 = in1.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+            let val2 = in2.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+            let val3 = in3.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+
+            // ∠DOB 的兩個內角: OPB/BPO 和 OBP/PBO
+            const opbGroup = ['OPB', 'BPO', 'PBO', 'OBP'];
+            const obpGroup = ['OBP', 'PBO', 'OPB', 'BPO'];
+
+            const is1Valid = opbGroup.includes(val1) || obpGroup.includes(val1);
+            const is2Valid = opbGroup.includes(val2) || obpGroup.includes(val2);
+            // 結果必須是 OPB
+            const is3Valid = ['OPB', 'BPO'].includes(val3);
+
+            // 視覺反饋
+            [in1, in2, in3].forEach((inp, idx) => {
+                const val = [val1, val2, val3][idx];
+                const valid = [is1Valid, is2Valid, is3Valid][idx];
+                if (val.length > 0) {
+                    inp.style.borderColor = valid ? '#28a745' : '#dc3545';
+                    inp.style.background = valid ? '#d4edda' : '#fff';
+                } else {
+                    inp.style.borderColor = '#0077b6';
+                    inp.style.background = '#fff';
+                }
+            });
+
+            // 全部正確時顯示第二行
+            if (is1Valid && is2Valid && is3Valid) {
+                document.getElementById('c3Case3Row2').style.display = 'block';
+            }
+        }
+
+        // 第二行: ∠DOA = ∠OPA + ∠OAP = 2∠OPA
+        function checkC3Case3Row2() {
+            const in4 = document.getElementById('c3Case3In4');
+            const in5 = document.getElementById('c3Case3In5');
+            const in6 = document.getElementById('c3Case3In6');
+            if (!in4 || !in5 || !in6) return;
+
+            let val4 = in4.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+            let val5 = in5.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+            let val6 = in6.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+
+            // ∠DOA 的兩個內角: OPA/APO 和 OAP/PAO
+            const opaGroup = ['OPA', 'APO', 'PAO', 'OAP'];
+            const oapGroup = ['OAP', 'PAO', 'OPA', 'APO'];
+
+            const is4Valid = opaGroup.includes(val4) || oapGroup.includes(val4);
+            const is5Valid = opaGroup.includes(val5) || oapGroup.includes(val5);
+            // 結果必須是 OPA
+            const is6Valid = ['OPA', 'APO'].includes(val6);
+
+            // 視覺反饋
+            [in4, in5, in6].forEach((inp, idx) => {
+                const val = [val4, val5, val6][idx];
+                const valid = [is4Valid, is5Valid, is6Valid][idx];
+                if (val.length > 0) {
+                    inp.style.borderColor = valid ? '#28a745' : '#dc3545';
+                    inp.style.background = valid ? '#d4edda' : '#fff';
+                } else {
+                    inp.style.borderColor = '#0077b6';
+                    inp.style.background = '#fff';
+                }
+            });
+
+            // 全部正確時顯示第三行
+            if (is4Valid && is5Valid && is6Valid) {
+                document.getElementById('c3Case3Row3').style.display = 'block';
+            }
+        }
+
+        // 第三行: ∠AOB = ∠DOB - ∠DOA
+        function checkC3Case3Row3() {
+            const in7 = document.getElementById('c3Case3In7');
+            const in8 = document.getElementById('c3Case3In8');
+            if (!in7 || !in8) return;
+
+            let val7 = in7.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+            let val8 = in8.value.trim().toUpperCase().replace(/∠/g, '').replace(/\s/g, '');
+
+            // 正確答案: DOB 和 DOA (或 BOD 和 AOD)
+            const dobGroup = ['DOB', 'BOD'];
+            const doaGroup = ['DOA', 'AOD'];
+
+            const is7Valid = dobGroup.includes(val7);
+            const is8Valid = doaGroup.includes(val8);
+
+            // 視覺反饋
+            if (val7.length > 0) {
+                in7.style.borderColor = is7Valid ? '#28a745' : '#dc3545';
+                in7.style.background = is7Valid ? '#d4edda' : '#fff';
+            } else {
+                in7.style.borderColor = '#0077b6';
+                in7.style.background = '#fff';
+            }
+
+            if (val8.length > 0) {
+                in8.style.borderColor = is8Valid ? '#28a745' : '#dc3545';
+                in8.style.background = is8Valid ? '#d4edda' : '#fff';
+            } else {
+                in8.style.borderColor = '#0077b6';
+                in8.style.background = '#fff';
+            }
+
+            // 全部正確時顯示結論並完成
+            if (is7Valid && is8Valid) {
+                document.getElementById('c3Case3Row4').style.display = 'block';
+                document.getElementById('c3TheoremArea').style.display = 'block';
+                state.tabC.proofStep = Math.max(state.tabC.proofStep, 3);
+                draw('C');
+            }
+        }
+
+        // C-3 → C-4: 完成外角定理理解
+        function completeC3() {
+            state.tabC.step3Complete = true;
+            state.tabC.proofStep = 4;
+
+            document.getElementById('stepC3').className = 'step-card completed';
+            document.getElementById('stepC4').style.display = 'block';
+            document.getElementById('stepC4').className = 'step-card active';
+
+            // 改動 I: 同步顯示 stepC5 一般化歸納
+            const stepC5 = document.getElementById('stepC5');
+            if (stepC5) {
+                stepC5.style.display = 'block';
+                stepC5.className = 'step-card active';
+                // 平滑滾動到 stepC5
+                setTimeout(() => stepC5.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+            }
+
+            draw('C');
+        }
+
+        // 保留舊函數以防其他地方調用
+        function drawAuxiliaryLine() { selectAuxLineC('OP'); }
+        function checkStep2() { }
+        function checkStep2C() { checkC2Selection(); }
+        function completeStep3() { }
+        function completeStep3C() { completeC3(); }
+        function showTeacherInsight() { }
+
+        // 新增: 畫點狀角度標記
+        function drawDotAngle(ctx, vertex, p1, p2, color) {
+            // 計算角平分線方向
+            let v1x = p1.x - vertex.x;
+            let v1y = p1.y - vertex.y;
+            const len1 = Math.sqrt(v1x * v1x + v1y * v1y);
+            v1x /= len1; v1y /= len1;
+
+            let v2x = p2.x - vertex.x;
+            let v2y = p2.y - vertex.y;
+            const len2 = Math.sqrt(v2x * v2x + v2y * v2y);
+            v2x /= len2; v2y /= len2;
+
+            let mx = v1x + v2x;
+            let my = v1y + v2y;
+            const mlen = Math.sqrt(mx * mx + my * my);
+
+            if (mlen > 0) {
+                mx /= mlen; my /= mlen;
+                const r = 25; // 距離頂點的距離
+
+                ctx.beginPath();
+                ctx.arc(vertex.x + mx * r, vertex.y + my * r, 5, 0, Math.PI * 2); // 半徑5的空心圓
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            }
+        }
+
+        // 新增: 畫雙圈角度標記 (代表 2 倍關係)
+        function drawDoubleDotAngle(ctx, vertex, p1, p2, color) {
+            // 計算角平分線方向
+            let v1x = p1.x - vertex.x;
+            let v1y = p1.y - vertex.y;
+            const len1 = Math.sqrt(v1x * v1x + v1y * v1y);
+            v1x /= len1; v1y /= len1;
+
+            let v2x = p2.x - vertex.x;
+            let v2y = p2.y - vertex.y;
+            const len2 = Math.sqrt(v2x * v2x + v2y * v2y);
+            v2x /= len2; v2y /= len2;
+
+            let mx = v1x + v2x;
+            let my = v1y + v2y;
+            const mlen = Math.sqrt(mx * mx + my * my);
+
+            if (mlen > 0) {
+                mx /= mlen; my /= mlen;
+                const r = 30; // 距離頂點的距離
+
+                // 畫兩個並排的空心圓
+                ctx.beginPath();
+                ctx.arc(vertex.x + mx * r - 6, vertex.y + my * r, 5, 0, Math.PI * 2);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(vertex.x + mx * r + 6, vertex.y + my * r, 5, 0, Math.PI * 2);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            }
+        }
+
+        // ===== 結論顯示 =====
+        function showConclusion(tab) {
+            const overlay = document.getElementById('conclusionOverlay');
+            const header = document.getElementById('conclusionHeader');
+            const content = document.getElementById('conclusionContent');
+
+            overlay.classList.add('active');
+
+            if (tab === 'A') {
+                // Tab B（視覺）= tab1 = general verification
+                header.innerHTML = '🌐 一般化驗證完成！';
+                content.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: #20c997; margin-bottom: 10px;">圓周角不變性的根本原因</h3>
+                        <p style="font-size: 1.1em; line-height: 1.8;">
+                            ∠APB 之所以不變，<br>
+                            是因為它永遠等於<br>
+                            <strong style="color: #FF6B6B; font-size: 1.25em;">½ × ∠AOB</strong>
+                        </p>
+                    </div>
+                    <div style="background: linear-gradient(135deg,#f0fff4,#e6ffed); padding: 14px; border-radius: 10px; border-left: 4px solid #20c997; font-size: 0.95em; line-height:1.7;">
+                        只要弧 AB 不動，∠AOB 就不動，∠APB 當然也不動。<br>
+                        <strong>「同弧所對圓周角相等」</strong>正是 2 倍關係的必然推論！
+                    </div>
+                    <div style="margin-top:14px; background:#f8f9fa; padding:12px; border-radius:8px; font-size:0.9em; color:#495057;">
+                        下一步：前往 <strong>C 分類證明</strong>，用數學嚴格證明這件事。
+                    </div>
+                `;
+            } else if (tab === 'B') {
+                // Tab A（視覺）= tab2 = special angles
+                const guessInput = document.getElementById('guessInputB');
+                const val = parseFloat(guessInput ? guessInput.value : 0);
+
+                const toast = document.createElement('div');
+                toast.id = 'bToast';
+                toast.style.cssText = 'position:fixed; right:24px; bottom:24px; z-index:9999; background:rgba(0,0,0,0.8); color:white; padding:12px 24px; border-radius:8px; font-size:14px; transition:opacity 0.5s; box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+
+                if (val >= 1.8 && val <= 2.2) {
+                    toast.textContent = '答對了！前往 B 一般化驗證，換任意弧繼續驗證吧。';
+                    toast.style.background = '#20c997';
+                } else {
+                    toast.textContent = '多試幾個角度，比值是否都接近 2？';
+                    toast.style.background = '#f39c12';
+                }
+
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 500);
+                }, 2500);
+
+                header.innerHTML = '✨ 規律發現！';
+                content.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: #FF6B6B; margin-bottom: 10px;">特殊角 → 發現 2 倍規律</h3>
+                        <p style="font-size: 1.1em; line-height: 1.8;">
+                            不管選哪個特殊角，<br>
+                            <strong style="color: #20c997; font-size: 1.2em;">圓心角 = 2 × 圓周角</strong><br>
+                            都成立！
+                        </p>
+                    </div>
+                    <div style="background: #fffdf5; padding: 14px; border-radius: 10px; border-left: 4px solid #f39c12; font-size: 0.95em; line-height:1.7;">
+                        ⚠️ 這只是特殊角的觀察。<br>
+                        換任意角度也成立嗎？<br>
+                        <strong>前往 B 一般化驗證！</strong>
+                    </div>
+                `;
+            }
+        }
+
+        function showTeacherHighlight() {
+            alert("「它不是在教定理，\n而是在讓學生『發現一個無法甩掉的關係』。」");
+        }
+
+        function closeConclusion() {
+            document.getElementById('conclusionOverlay').classList.remove('active');
+        }
+
+        // ===== 頁籤切換 =====
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            // 重新繪製當前 tab (需重新調整大小以修正隱藏 tab 的尺寸問題)
+            const tabLetter = tabId.replace('tab', '');
+            resizeCanvas(tabLetter);
+        }
+    </script>
+</body>
+
+</html>
